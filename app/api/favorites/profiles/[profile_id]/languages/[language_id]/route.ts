@@ -6,7 +6,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  * @swagger
  * /api/favorites/profiles/{profile_id}/languages/{language_id}:
  *   get:
- *     summary: Gets all the favorite stories of a profile
+ *     summary: Gets all the favorite books of a profile
  *     tags:
  *       - Favorites
  *     security:
@@ -26,7 +26,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *         description: The language ID
  *     responses:
  *       200:
- *         description: List of favorite stories for the profile with translation for the given language
+ *         description: List of favorite books for the profile with translation for the given language
  *         content:
  *           application/json:
  *             schema:
@@ -37,7 +37,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                   id:
  *                     type: integer
  *                     description: Favorite ID
- *                   story:
+ *                   book:
  *                     type: object
  *                     properties:
  *                       id:
@@ -45,7 +45,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                       photo_url:
  *                         type: string
  *                         nullable: true
- *                       storyTranslations:
+ *                       bookTranslations:
  *                         type: array
  *                         description: Contains one translation for the requested language
  *                         items:
@@ -115,12 +115,12 @@ export async function GET(
             },
             select: {
                 id: true,
-                story: {
+                book: {
                     select: {
                         id: true,
                         photo_url: true,
                         status: true,
-                        storyTranslations: {
+                        bookTranslations: {
                             select: {
                                 title: true,
                                 description: true,

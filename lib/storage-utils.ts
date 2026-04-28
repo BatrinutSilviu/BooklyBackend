@@ -1,19 +1,19 @@
 import { randomUUID } from 'crypto'
 
-export type AssetType = 'avatar' | 'story-cover' | 'story-page' | 'category'
+export type AssetType = 'avatar' | 'book-cover' | 'book-page' | 'category'
 
 const ASSET_FOLDERS: Record<AssetType, string> = {
     'avatar':      'avatars',
-    'story-cover': 'stories/covers',
-    'story-page':  'stories/pages',
+    'book-cover': 'books/covers',
+    'book-page':  'books/pages',
     'category':    'categories',
 }
 
 // Generate R2 storage key for an asset.
 // Format: {folder}/{userId}-{uuid}.{ext}
 // Examples:
-//   stories/covers/user123-a1b2c3d4.jpg
-//   stories/pages/user123-b2c3d4e5.png
+//   books/covers/user123-a1b2c3d4.jpg
+//   books/pages/user123-b2c3d4e5.png
 //   categories/user123-c3d4e5f6.webp
 //   avatars/user123-d4e5f6a7.jpg
 export function generateStorageKey(

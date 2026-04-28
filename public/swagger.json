@@ -11,7 +11,7 @@
       "description": "Development server"
     },
     {
-      "url": "https://story-teller-batrinutsilvius-projects.vercel.app",
+      "url": "https://book-teller-batrinutsilvius-projects.vercel.app",
       "description": "Production server"
     }
   ],
@@ -421,7 +421,7 @@
                     "_count": {
                       "type": "object",
                       "properties": {
-                        "storyCategories": {
+                        "bookCategories": {
                           "type": "integer"
                         },
                         "profileCategories": {
@@ -624,7 +624,7 @@
                     "details": {
                       "type": "object",
                       "properties": {
-                        "stories": {
+                        "books": {
                           "type": "integer"
                         },
                         "profiles": {
@@ -917,7 +917,7 @@
     },
     "/api/favorites/profiles/{profile_id}/languages/{language_id}": {
       "get": {
-        "summary": "Gets all the favorite stories of a profile",
+        "summary": "Gets all the favorite books of a profile",
         "tags": [
           "Favorites"
         ],
@@ -948,7 +948,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of favorite stories for the profile with translation for the given language",
+            "description": "List of favorite books for the profile with translation for the given language",
             "content": {
               "application/json": {
                 "schema": {
@@ -960,7 +960,7 @@
                         "type": "integer",
                         "description": "Favorite ID"
                       },
-                      "story": {
+                      "book": {
                         "type": "object",
                         "properties": {
                           "id": {
@@ -970,7 +970,7 @@
                             "type": "string",
                             "nullable": true
                           },
-                          "storyTranslations": {
+                          "bookTranslations": {
                             "type": "array",
                             "description": "Contains one translation for the requested language",
                             "items": {
@@ -1009,9 +1009,9 @@
         }
       }
     },
-    "/api/favorites/profiles/{profile_id}/stories/{story_id}": {
+    "/api/favorites/profiles/{profile_id}/books/{book_id}": {
       "delete": {
-        "summary": "Remove a favorite story",
+        "summary": "Remove a favorite book",
         "tags": [
           "Favorites"
         ],
@@ -1032,12 +1032,12 @@
           },
           {
             "in": "path",
-            "name": "story_id",
+            "name": "book_id",
             "required": true,
             "schema": {
               "type": "integer"
             },
-            "description": "Story ID"
+            "description": "Book ID"
           }
         ],
         "responses": {
@@ -1055,7 +1055,7 @@
                     "profile_id": {
                       "type": "integer"
                     },
-                    "story_id": {
+                    "book_id": {
                       "type": "integer"
                     }
                   }
@@ -1099,11 +1099,11 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "story_id",
+                  "book_id",
                   "profile_id"
                 ],
                 "properties": {
-                  "story_id": {
+                  "book_id": {
                     "type": "integer",
                     "example": 1
                   },
@@ -1130,7 +1130,7 @@
                     "profile_id": {
                       "type": "integer"
                     },
-                    "story_id": {
+                    "book_id": {
                       "type": "integer"
                     },
                     "created_at": {
@@ -1143,13 +1143,13 @@
             }
           },
           "400": {
-            "description": "Bad request - missing profile_id or story_id"
+            "description": "Bad request - missing profile_id or book_id"
           },
           "401": {
             "description": "Unauthorized"
           },
           "404": {
-            "description": "Profile or story not found"
+            "description": "Profile or book not found"
           },
           "409": {
             "description": "Favorite already exists"
@@ -1243,7 +1243,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Playlist with stories and their translations for the given language",
+            "description": "Playlist with books and their translations for the given language",
             "content": {
               "application/json": {
                 "schema": {
@@ -1262,7 +1262,7 @@
                       "type": "string",
                       "format": "date-time"
                     },
-                    "playlistStories": {
+                    "playlistBooks": {
                       "type": "array",
                       "description": "Sorted by order ascending",
                       "items": {
@@ -1274,7 +1274,7 @@
                           "playlist_id": {
                             "type": "integer"
                           },
-                          "story_id": {
+                          "book_id": {
                             "type": "integer"
                           },
                           "order": {
@@ -1284,7 +1284,7 @@
                             "type": "string",
                             "format": "date-time"
                           },
-                          "story": {
+                          "book": {
                             "type": "object",
                             "properties": {
                               "id": {
@@ -1294,7 +1294,7 @@
                                 "type": "string",
                                 "nullable": true
                               },
-                              "storyTranslations": {
+                              "bookTranslations": {
                                 "type": "array",
                                 "description": "Contains one translation for the requested language",
                                 "items": {
@@ -1366,7 +1366,7 @@
                   "name": {
                     "type": "string",
                     "description": "New name for the playlist",
-                    "example": "My Favorite Stories"
+                    "example": "My Favorite Books"
                   }
                 }
               }
@@ -1408,7 +1408,7 @@
                     "_count": {
                       "type": "object",
                       "properties": {
-                        "playlistStories": {
+                        "playlistBooks": {
                           "type": "integer"
                         }
                       }
@@ -1491,9 +1491,9 @@
         }
       }
     },
-    "/api/playlists/{playlist_id}/stories/{story_id}": {
+    "/api/playlists/{playlist_id}/books/{book_id}": {
       "delete": {
-        "summary": "Remove story from playlist",
+        "summary": "Remove book from playlist",
         "tags": [
           "Playlists"
         ],
@@ -1514,17 +1514,17 @@
           },
           {
             "in": "path",
-            "name": "story_id",
+            "name": "book_id",
             "required": true,
             "schema": {
               "type": "integer"
             },
-            "description": "Story ID"
+            "description": "Book ID"
           }
         ],
         "responses": {
           "200": {
-            "description": "Story removed from playlist successfully",
+            "description": "Book removed from playlist successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -1532,7 +1532,7 @@
                   "properties": {
                     "message": {
                       "type": "string",
-                      "example": "Story removed from playlist successfully"
+                      "example": "Book removed from playlist successfully"
                     }
                   }
                 }
@@ -1540,7 +1540,7 @@
             }
           },
           "400": {
-            "description": "Invalid playlist ID or story ID"
+            "description": "Invalid playlist ID or book ID"
           },
           "401": {
             "description": "Unauthorized"
@@ -1549,7 +1549,7 @@
             "description": "Forbidden - not your playlist"
           },
           "404": {
-            "description": "Playlist, story, or playlist entry not found"
+            "description": "Playlist, book, or playlist entry not found"
           },
           "500": {
             "description": "Server error"
@@ -1557,9 +1557,9 @@
         }
       }
     },
-    "/api/playlists/{playlist_id}/stories": {
+    "/api/playlists/{playlist_id}/books": {
       "post": {
-        "summary": "Add story to playlist",
+        "summary": "Add book to playlist",
         "tags": [
           "Playlists"
         ],
@@ -1586,12 +1586,12 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "story_id"
+                  "book_id"
                 ],
                 "properties": {
-                  "story_id": {
+                  "book_id": {
                     "type": "integer",
-                    "description": "ID of the story to add",
+                    "description": "ID of the book to add",
                     "example": 5
                   },
                   "position": {
@@ -1606,7 +1606,7 @@
         },
         "responses": {
           "201": {
-            "description": "Story added to playlist successfully",
+            "description": "Book added to playlist successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -1618,13 +1618,13 @@
                     "playlist_id": {
                       "type": "integer"
                     },
-                    "story_id": {
+                    "book_id": {
                       "type": "integer"
                     },
                     "order": {
                       "type": "integer"
                     },
-                    "story": {
+                    "book": {
                       "type": "object",
                       "properties": {
                         "id": {
@@ -1634,7 +1634,7 @@
                           "type": "string",
                           "nullable": true
                         },
-                        "storyTranslations": {
+                        "bookTranslations": {
                           "type": "array",
                           "items": {
                             "type": "object",
@@ -1683,10 +1683,10 @@
             "description": "Forbidden - playlist doesn't belong to user"
           },
           "404": {
-            "description": "Playlist or story not found"
+            "description": "Playlist or book not found"
           },
           "409": {
-            "description": "Story already in playlist"
+            "description": "Book already in playlist"
           },
           "500": {
             "description": "Server error"
@@ -1718,7 +1718,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of playlists for the profile with story entries sorted by order",
+            "description": "List of playlists for the profile with book entries sorted by order",
             "content": {
               "application/json": {
                 "schema": {
@@ -1732,7 +1732,7 @@
                       "name": {
                         "type": "string"
                       },
-                      "playlistStories": {
+                      "playlistBooks": {
                         "type": "array",
                         "items": {
                           "type": "object",
@@ -1743,7 +1743,7 @@
                             "order": {
                               "type": "integer"
                             },
-                            "story_id": {
+                            "book_id": {
                               "type": "integer"
                             }
                           }
@@ -1790,14 +1790,14 @@
                 "required": [
                   "name",
                   "profile_id",
-                  "story_ids"
+                  "book_ids"
                 ],
                 "properties": {
                   "profile_id": {
                     "type": "integer",
                     "example": 1
                   },
-                  "story_ids": {
+                  "book_ids": {
                     "type": "array",
                     "items": {
                       "type": "integer"
@@ -1844,13 +1844,13 @@
             }
           },
           "400": {
-            "description": "Bad request - missing fields, empty story_ids, or stories not found"
+            "description": "Bad request - missing fields, empty book_ids, or books not found"
           },
           "401": {
             "description": "Unauthorized"
           },
           "404": {
-            "description": "Profile or story not found"
+            "description": "Profile or book not found"
           },
           "500": {
             "description": "Server error"
@@ -2093,7 +2093,7 @@
                     "deleted": {
                       "type": "object",
                       "properties": {
-                        "playlistStories": {
+                        "playlistBooks": {
                           "type": "integer"
                         },
                         "playlists": {
@@ -2426,11 +2426,11 @@
         }
       }
     },
-    "/api/stories/{story_id}/categories/language/{language_id}": {
+    "/api/books/{book_id}/categories/language/{language_id}": {
       "get": {
-        "summary": "Gets all the categories of a story",
+        "summary": "Gets all the categories of a book",
         "tags": [
-          "Stories"
+          "Books"
         ],
         "security": [
           {
@@ -2440,12 +2440,12 @@
         "parameters": [
           {
             "in": "path",
-            "name": "story_id",
+            "name": "book_id",
             "required": true,
             "schema": {
               "type": "integer"
             },
-            "description": "The story ID"
+            "description": "The book ID"
           },
           {
             "in": "path",
@@ -2459,7 +2459,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of categories for the story with translated names",
+            "description": "List of categories for the book with translated names",
             "content": {
               "application/json": {
                 "schema": {
@@ -2469,7 +2469,7 @@
                     "properties": {
                       "id": {
                         "type": "integer",
-                        "description": "StoryCategory ID"
+                        "description": "BookCategory ID"
                       },
                       "category": {
                         "type": "object",
@@ -2510,11 +2510,11 @@
         }
       }
     },
-    "/api/stories/{story_id}/languages/{language_id}/minified": {
+    "/api/books/{book_id}/languages/{language_id}/minified": {
       "get": {
-        "summary": "Gets a summary story translation by language",
+        "summary": "Gets a summary book translation by language",
         "tags": [
-          "Stories"
+          "Books"
         ],
         "security": [
           {
@@ -2524,7 +2524,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "story_id",
+            "name": "book_id",
             "required": true,
             "schema": {
               "type": "integer"
@@ -2541,7 +2541,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Story summary without pages (title, description, cover and duration)",
+            "description": "Book summary without pages (title, description, cover and duration)",
             "content": {
               "application/json": {
                 "schema": {
@@ -2551,7 +2551,7 @@
                     "properties": {
                       "id": {
                         "type": "integer",
-                        "description": "StoryTranslation ID"
+                        "description": "BookTranslation ID"
                       },
                       "title": {
                         "type": "string"
@@ -2560,7 +2560,7 @@
                         "type": "string",
                         "nullable": true
                       },
-                      "story": {
+                      "book": {
                         "type": "object",
                         "properties": {
                           "photo_url": {
@@ -2570,7 +2570,7 @@
                           "duration": {
                             "type": "integer",
                             "nullable": true,
-                            "description": "Story duration in seconds"
+                            "description": "Book duration in seconds"
                           }
                         }
                       }
@@ -2589,11 +2589,11 @@
         }
       }
     },
-    "/api/stories/{story_id}/languages/{language_id}": {
+    "/api/books/{book_id}/languages/{language_id}": {
       "get": {
-        "summary": "Gets a story translation by language",
+        "summary": "Gets a book translation by language",
         "tags": [
-          "Stories"
+          "Books"
         ],
         "security": [
           {
@@ -2603,7 +2603,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "story_id",
+            "name": "book_id",
             "required": true,
             "schema": {
               "type": "integer"
@@ -2629,7 +2629,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Story translation with paginated pages",
+            "description": "Book translation with paginated pages",
             "content": {
               "application/json": {
                 "schema": {
@@ -2639,7 +2639,7 @@
                     "properties": {
                       "id": {
                         "type": "integer",
-                        "description": "StoryTranslation ID"
+                        "description": "BookTranslation ID"
                       },
                       "title": {
                         "type": "string"
@@ -2648,7 +2648,7 @@
                         "type": "string",
                         "nullable": true
                       },
-                      "story": {
+                      "book": {
                         "type": "object",
                         "properties": {
                           "photo_url": {
@@ -2671,7 +2671,7 @@
                           }
                         }
                       },
-                      "storyPages": {
+                      "bookPages": {
                         "type": "array",
                         "items": {
                           "type": "object",
@@ -2711,11 +2711,11 @@
         }
       }
     },
-    "/api/stories/{story_id}/languages": {
+    "/api/books/{book_id}/languages": {
       "get": {
-        "summary": "Gets all translations of a story",
+        "summary": "Gets all translations of a book",
         "tags": [
-          "Stories"
+          "Books"
         ],
         "security": [
           {
@@ -2725,17 +2725,17 @@
         "parameters": [
           {
             "in": "path",
-            "name": "story_id",
+            "name": "book_id",
             "required": true,
             "schema": {
               "type": "integer"
             },
-            "description": "The story ID"
+            "description": "The book ID"
           }
         ],
         "responses": {
           "200": {
-            "description": "List of story translations with language info",
+            "description": "List of book translations with language info",
             "content": {
               "application/json": {
                 "schema": {
@@ -2745,7 +2745,7 @@
                     "properties": {
                       "id": {
                         "type": "integer",
-                        "description": "StoryTranslation ID"
+                        "description": "BookTranslation ID"
                       },
                       "title": {
                         "type": "string"
@@ -2783,11 +2783,11 @@
         }
       }
     },
-    "/api/stories/categories/{category_id}/languages/{language_id}": {
+    "/api/books/categories/{category_id}/languages/{language_id}": {
       "get": {
-        "summary": "Gets all the stories from a category by language",
+        "summary": "Gets all the books from a category by language",
         "tags": [
-          "Stories"
+          "Books"
         ],
         "security": [
           {
@@ -2816,7 +2816,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of stories in the category with translation for the given language",
+            "description": "List of books in the category with translation for the given language",
             "content": {
               "application/json": {
                 "schema": {
@@ -2826,9 +2826,9 @@
                     "properties": {
                       "id": {
                         "type": "integer",
-                        "description": "StoryCategory ID"
+                        "description": "BookCategory ID"
                       },
-                      "story": {
+                      "book": {
                         "type": "object",
                         "properties": {
                           "id": {
@@ -2838,7 +2838,7 @@
                             "type": "string",
                             "nullable": true
                           },
-                          "storyTranslations": {
+                          "bookTranslations": {
                             "type": "array",
                             "description": "Contains one translation for the requested language, sorted by title",
                             "items": {
@@ -2874,12 +2874,12 @@
         }
       }
     },
-    "/api/stories": {
+    "/api/books": {
       "get": {
-        "summary": "Get all stories",
-        "description": "Returns paginated stories with their translations, pages, and categories",
+        "summary": "Get all books",
+        "description": "Returns paginated books with their translations, pages, and categories",
         "tags": [
-          "Stories"
+          "Books"
         ],
         "security": [
           {
@@ -2911,7 +2911,7 @@
             "schema": {
               "type": "integer"
             },
-            "description": "Filter stories that have a translation in this language"
+            "description": "Filter books that have a translation in this language"
           },
           {
             "in": "query",
@@ -2927,12 +2927,12 @@
             "schema": {
               "type": "integer"
             },
-            "description": "Filter stories belonging to this category"
+            "description": "Filter books belonging to this category"
           }
         ],
         "responses": {
           "200": {
-            "description": "Paginated list of stories",
+            "description": "Paginated list of books",
             "content": {
               "application/json": {
                 "schema": {
@@ -2961,13 +2961,13 @@
                             "type": "string",
                             "format": "date-time"
                           },
-                          "storyCategories": {
+                          "bookCategories": {
                             "type": "array",
                             "items": {
                               "type": "object"
                             }
                           },
-                          "storyTranslations": {
+                          "bookTranslations": {
                             "type": "array",
                             "items": {
                               "type": "object"
@@ -3007,10 +3007,10 @@
         }
       },
       "post": {
-        "summary": "Create a story with pages and upload photos (admin only)",
-        "description": "Creates a story with a language-specific title and one page per entry.\nEach page has its own text and optionally its own photo.\n\nSend as `multipart/form-data`. Page metadata is passed as a JSON string\nin the `pages` field. Page photos are uploaded as separate file fields\nnamed `page_photo_{page_number}` (e.g. `page_photo_1`, `page_photo_2`).\n",
+        "summary": "Create a book with pages and upload photos (admin only)",
+        "description": "Creates a book with a language-specific title and one page per entry.\nEach page has its own text and optionally its own photo.\n\nSend as `multipart/form-data`. Page metadata is passed as a JSON string\nin the `pages` field. Page photos are uploaded as separate file fields\nnamed `page_photo_{page_number}` (e.g. `page_photo_1`, `page_photo_2`).\n",
         "tags": [
-          "Stories"
+          "Books"
         ],
         "security": [
           {
@@ -3042,17 +3042,17 @@
                   },
                   "series_ids": {
                     "type": "string",
-                    "description": "JSON array of series IDs to assign the story to (e.g. [1,2])"
+                    "description": "JSON array of series IDs to assign the book to (e.g. [1,2])"
                   },
                   "category_ids": {
                     "type": "string",
                     "description": "JSON array of category IDs, e.g. \"[1, 2]\"",
                     "example": "[1, 2]"
                   },
-                  "story_photo": {
+                  "book_photo": {
                     "type": "string",
                     "format": "binary",
-                    "description": "Cover photo for the story (JPEG, PNG, WebP, or GIF, max 5MB)"
+                    "description": "Cover photo for the book (JPEG, PNG, WebP, or GIF, max 5MB)"
                   },
                   "pages": {
                     "type": "string",
@@ -3071,7 +3071,7 @@
         },
         "responses": {
           "201": {
-            "description": "Story created successfully",
+            "description": "Book created successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -3091,7 +3091,7 @@
                       "type": "string",
                       "format": "date-time"
                     },
-                    "storyCategories": {
+                    "bookCategories": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -3127,7 +3127,7 @@
                         }
                       }
                     },
-                    "storyTranslations": {
+                    "bookTranslations": {
                       "type": "array",
                       "items": {
                         "type": "object",
@@ -3156,7 +3156,7 @@
                               }
                             }
                           },
-                          "storyPages": {
+                          "bookPages": {
                             "type": "array",
                             "items": {
                               "type": "object",
@@ -3203,11 +3203,11 @@
         }
       }
     },
-    "/api/story-series/{id}": {
+    "/api/book-series/{id}": {
       "get": {
-        "summary": "Get a story series by ID",
+        "summary": "Get a book series by ID",
         "tags": [
-          "Story Series"
+          "Book Series"
         ],
         "security": [
           {
@@ -3226,7 +3226,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Story series details"
+            "description": "Book series details"
           },
           "404": {
             "description": "Not found"
@@ -3237,9 +3237,9 @@
         }
       },
       "put": {
-        "summary": "Update a story series",
+        "summary": "Update a book series",
         "tags": [
-          "Story Series"
+          "Book Series"
         ],
         "security": [
           {
@@ -3276,7 +3276,7 @@
         },
         "responses": {
           "200": {
-            "description": "Updated story series"
+            "description": "Updated book series"
           },
           "400": {
             "description": "Validation error"
@@ -3290,9 +3290,9 @@
         }
       },
       "delete": {
-        "summary": "Delete a story series",
+        "summary": "Delete a book series",
         "tags": [
-          "Story Series"
+          "Book Series"
         ],
         "security": [
           {
@@ -3322,11 +3322,11 @@
         }
       }
     },
-    "/api/story-series": {
+    "/api/book-series": {
       "get": {
-        "summary": "Get all story series",
+        "summary": "Get all book series",
         "tags": [
-          "Story Series"
+          "Book Series"
         ],
         "security": [
           {
@@ -3363,7 +3363,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Paginated list of story series",
+            "description": "Paginated list of book series",
             "content": {
               "application/json": {
                 "schema": {
@@ -3418,9 +3418,9 @@
         }
       },
       "post": {
-        "summary": "Create a story series",
+        "summary": "Create a book series",
         "tags": [
-          "Story Series"
+          "Book Series"
         ],
         "security": [
           {
@@ -3440,12 +3440,12 @@
                   "name": {
                     "type": "string"
                   },
-                  "story_ids": {
+                  "book_ids": {
                     "type": "array",
                     "items": {
                       "type": "integer"
                     },
-                    "description": "Optional list of story IDs to assign to this series"
+                    "description": "Optional list of book IDs to assign to this series"
                   }
                 }
               }
@@ -3454,7 +3454,7 @@
         },
         "responses": {
           "201": {
-            "description": "Created story series"
+            "description": "Created book series"
           },
           "400": {
             "description": "Validation error"

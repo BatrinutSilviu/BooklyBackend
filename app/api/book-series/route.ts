@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedAdmin } from '@/lib/auth'
-import { ValidationError, validateStoriesExist, validateJsonArray } from '@/lib/validators'
+import { ValidationError, validateBooksExist, validateJsonArray } from '@/lib/validators'
 
 /**
  * @swagger
- * /api/story-series:
+ * /api/book-series:
  *   get:
- *     summary: Get all story series
+ *     summary: Get all book series
  *     tags:
- *       - Story Series
+ *       - Book Series
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -32,7 +32,7 @@ import { ValidationError, validateStoriesExist, validateJsonArray } from '@/lib/
  *         description: Filter by name (case-insensitive partial match)
  *     responses:
  *       200:
- *         description: Paginated list of story series
+ *         description: Paginated list of book series
  *         content:
  *           application/json:
  *             schema:
@@ -80,21 +80,21 @@ export async function GET(request: Request) {
         const where = name ? { name: { contains: name, mode: 'insensitive' as const } } : {}
 
         const [total, series] = await prisma.$transaction([
-            prisma.storySeries.count({ where }),
-            prisma.storySeries.findMany({
+            prisma.bookSeries.count({ where }),
+            prisma.bookSeries.findMany({
                 where,
                 orderBy: { created_at: 'desc' },
                 skip,
                 take: limit,
                 include: {
-                    storySeriesStories: {
+                    bookSeriesBooks: {
                         include: {
-                            story: {
+                            book: {
                                 include: {
-                                    storyTranslations: {
+                                    bookTranslations: {
                                         include: {
                                             language: true,
-                                            storyPages: { orderBy: { page_number: 'asc' } },
+                                            bookPages: { orderBy: { page_number: 'asc' } },
                                         },
                                     },
                                 },
@@ -110,18 +110,18 @@ export async function GET(request: Request) {
             pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
         })
     } catch (error) {
-        console.error('Get story series error:', error)
-        return NextResponse.json({ error: 'Failed to get story series' }, { status: 500 })
+        console.error('Get book series error:', error)
+        return NextResponse.json({ error: 'Failed to get book series' }, { status: 500 })
     }
 }
 
 /**
  * @swagger
- * /api/story-series:
+ * /api/book-series:
  *   post:
- *     summary: Create a story series
+ *     summary: Create a book series
  *     tags:
- *       - Story Series
+ *       - Book Series
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -135,14 +135,14 @@ export async function GET(request: Request) {
  *             properties:
  *               name:
  *                 type: string
- *               story_ids:
+ *               book_ids:
  *                 type: array
  *                 items:
  *                   type: integer
- *                 description: Optional list of story IDs to assign to this series
+ *                 description: Optional list of book IDs to assign to this series
  *     responses:
  *       201:
- *         description: Created story series
+ *         description: Created book series
  *       400:
  *         description: Validation error
  *       401:
@@ -156,25 +156,25 @@ export async function POST(request: Request) {
         if (authError) return authError
 
         const body = await request.json()
-        const { name, story_ids } = body
+        const { name, book_ids } = body
 
         if (!name || typeof name !== 'string' || !name.trim()) {
             throw new ValidationError('name is required', 400)
         }
 
-        const storyIds: number[] = Array.isArray(story_ids) ? story_ids : []
-        if (storyIds.length > 0) await validateStoriesExist(storyIds)
+        const bookIds: number[] = Array.isArray(book_ids) ? book_ids : []
+        if (bookIds.length > 0) await validateBooksExist(bookIds)
 
-        const series = await prisma.storySeries.create({
+        const series = await prisma.bookSeries.create({
             data: {
                 name: name.trim(),
-                storySeriesStories: storyIds.length > 0 ? {
-                    create: storyIds.map((story_id: number) => ({ story_id }))
+                bookSeriesBooks: bookIds.length > 0 ? {
+                    create: bookIds.map((book_id: number) => ({ book_id }))
                 } : undefined,
             },
             include: {
-                storySeriesStories: {
-                    include: { story: true },
+                bookSeriesBooks: {
+                    include: { book: true },
                 },
             },
         })
@@ -184,7 +184,7 @@ export async function POST(request: Request) {
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
-        console.error('Create story series error:', error)
-        return NextResponse.json({ error: 'Failed to create story series' }, { status: 500 })
+        console.error('Create book series error:', error)
+        return NextResponse.json({ error: 'Failed to create book series' }, { status: 500 })
     }
 }

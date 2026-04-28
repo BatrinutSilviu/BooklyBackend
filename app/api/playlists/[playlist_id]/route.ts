@@ -30,7 +30,7 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *               name:
  *                 type: string
  *                 description: New name for the playlist
- *                 example: My Favorite Stories
+ *                 example: My Favorite Books
  *     responses:
  *       200:
  *         description: Playlist updated successfully
@@ -58,7 +58,7 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *                 _count:
  *                   type: object
  *                   properties:
- *                     playlistStories:
+ *                     playlistBooks:
  *                       type: integer
  *       400:
  *         description: Bad request - validation error
@@ -157,7 +157,7 @@ export async function PUT(
                 },
                 _count: {
                     select: {
-                        playlistStories: true
+                        playlistBooks: true
                     }
                 }
             }

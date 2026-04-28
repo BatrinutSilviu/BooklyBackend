@@ -4,27 +4,29 @@ import {getAuthenticatedUser} from "@/lib/auth";
 
 /**
  * @swagger
- * /api/stories/{story_id}/languages/{language_id}/minified:
+ * /api/books/{book_id}/categories/language/{language_id}:
  *   get:
- *     summary: Gets a summary story translation by language
+ *     summary: Gets all the categories of a book
  *     tags:
- *       - Stories
+ *       - Books
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: story_id
+ *         name: book_id
  *         required: true
  *         schema:
  *           type: integer
+ *         description: The book ID
  *       - in: path
  *         name: language_id
  *         required: true
  *         schema:
  *           type: integer
+ *         description: The language ID
  *     responses:
  *       200:
- *         description: Story summary without pages (title, description, cover and duration)
+ *         description: List of categories for the book with translated names
  *         content:
  *           application/json:
  *             schema:
@@ -34,22 +36,23 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                 properties:
  *                   id:
  *                     type: integer
- *                     description: StoryTranslation ID
- *                   title:
- *                     type: string
- *                   description:
- *                     type: string
- *                     nullable: true
- *                   story:
+ *                     description: BookCategory ID
+ *                   category:
  *                     type: object
  *                     properties:
+ *                       id:
+ *                         type: integer
  *                       photo_url:
  *                         type: string
  *                         nullable: true
- *                       duration:
- *                         type: integer
- *                         nullable: true
- *                         description: Story duration in seconds
+ *                       categoryTranslations:
+ *                         type: array
+ *                         description: Contains one translation for the requested language
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
  *       401:
  *         description: Unauthorized
  *       500:
@@ -57,7 +60,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  */
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ id: string; language_id: string }> }
+    { params }: { params: Promise<{ id: string, language_id: string }> }
 ) {
     try {
         const { user, error } = await getAuthenticatedUser()
@@ -67,36 +70,41 @@ export async function GET(
         }
 
         const { id, language_id } = await params
-        const storyIdParsed = parseInt(id, 10)
+        const bookIdParsed = parseInt(id, 10)
         const languageIdParsed = parseInt(language_id, 10)
 
-        const storyTranslations = await prisma.storyTranslations.findMany({
+        const bookCategories = await prisma.bookCategories.findMany({
             where: {
-                story_id : storyIdParsed,
-                language_id: languageIdParsed
+                book_id : bookIdParsed
             },
             select: {
                 id: true,
-                title: true,
-                description: true,
-                story: {
+                category: {
                     select: {
+                        id: true,
                         photo_url: true,
-                        duration: true,
-                        status: true
+                        status: true,
+                        categoryTranslations: {
+                            where: {
+                                language_id: languageIdParsed
+                            },
+                            select: {
+                                name: true
+                            }
+                        }
                     }
-                }
+                },
             }
         })
 
-        if (!storyTranslations) {
+        if (!bookCategories) {
             return NextResponse.json(
                 { error: 'Profile not found' },
                 { status: 404 }
             )
         }
 
-        return NextResponse.json(storyTranslations)
+        return NextResponse.json(bookCategories)
     } catch (error) {
         console.error('Route error:', error)
         return NextResponse.json(

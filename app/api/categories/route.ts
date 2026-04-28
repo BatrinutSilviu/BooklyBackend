@@ -129,7 +129,7 @@ export async function GET(request: Request) {
                         orderBy: { language: { name: 'asc' } }
                     },
                     _count: {
-                        select: { storyCategories: true, profileCategories: true }
+                        select: { bookCategories: true, profileCategories: true }
                     }
                 },
                 orderBy: { id: 'asc' },
@@ -229,7 +229,7 @@ export async function POST(request: Request) {
                     }
                 },
                 _count: {
-                    select: { storyCategories: true, profileCategories: true }
+                    select: { bookCategories: true, profileCategories: true }
                 }
             }
         })

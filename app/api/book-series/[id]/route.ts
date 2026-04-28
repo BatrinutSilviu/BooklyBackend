@@ -1,15 +1,15 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedAdmin } from '@/lib/auth'
-import { ValidationError, validateIntId, validateStorySeriesExists } from '@/lib/validators'
+import { ValidationError, validateIntId, validateBookSeriesExists } from '@/lib/validators'
 
 /**
  * @swagger
- * /api/story-series/{id}:
+ * /api/book-series/{id}:
  *   get:
- *     summary: Get a story series by ID
+ *     summary: Get a book series by ID
  *     tags:
- *       - Story Series
+ *       - Book Series
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -20,7 +20,7 @@ import { ValidationError, validateIntId, validateStorySeriesExists } from '@/lib
  *           type: integer
  *     responses:
  *       200:
- *         description: Story series details
+ *         description: Book series details
  *       404:
  *         description: Not found
  *       500:
@@ -36,19 +36,19 @@ export async function GET(
 
         const { id } = await params
         const seriesId = validateIntId(id, 'series ID')
-        await validateStorySeriesExists(seriesId)
+        await validateBookSeriesExists(seriesId)
 
-        const series = await prisma.storySeries.findUnique({
+        const series = await prisma.bookSeries.findUnique({
             where: { id: seriesId },
             include: {
-                storySeriesStories: {
+                bookSeriesBooks: {
                     include: {
-                        story: {
+                        book: {
                             include: {
-                                storyTranslations: {
+                                bookTranslations: {
                                     include: {
                                         language: true,
-                                        storyPages: { orderBy: { page_number: 'asc' } },
+                                        bookPages: { orderBy: { page_number: 'asc' } },
                                     },
                                 },
                             },
@@ -63,18 +63,18 @@ export async function GET(
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
-        console.error('Get story series error:', error)
-        return NextResponse.json({ error: 'Failed to get story series' }, { status: 500 })
+        console.error('Get book series error:', error)
+        return NextResponse.json({ error: 'Failed to get book series' }, { status: 500 })
     }
 }
 
 /**
  * @swagger
- * /api/story-series/{id}:
+ * /api/book-series/{id}:
  *   put:
- *     summary: Update a story series
+ *     summary: Update a book series
  *     tags:
- *       - Story Series
+ *       - Book Series
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -96,7 +96,7 @@ export async function GET(
  *                 type: string
  *     responses:
  *       200:
- *         description: Updated story series
+ *         description: Updated book series
  *       400:
  *         description: Validation error
  *       404:
@@ -114,7 +114,7 @@ export async function PUT(
 
         const { id } = await params
         const seriesId = validateIntId(id, 'series ID')
-        await validateStorySeriesExists(seriesId)
+        await validateBookSeriesExists(seriesId)
 
         const body = await request.json()
         const { name } = body
@@ -123,7 +123,7 @@ export async function PUT(
             throw new ValidationError('name is required', 400)
         }
 
-        const updated = await prisma.storySeries.update({
+        const updated = await prisma.bookSeries.update({
             where: { id: seriesId },
             data: { name: name.trim() },
         })
@@ -133,18 +133,18 @@ export async function PUT(
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
-        console.error('Update story series error:', error)
-        return NextResponse.json({ error: 'Failed to update story series' }, { status: 500 })
+        console.error('Update book series error:', error)
+        return NextResponse.json({ error: 'Failed to update book series' }, { status: 500 })
     }
 }
 
 /**
  * @swagger
- * /api/story-series/{id}:
+ * /api/book-series/{id}:
  *   delete:
- *     summary: Delete a story series
+ *     summary: Delete a book series
  *     tags:
- *       - Story Series
+ *       - Book Series
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -171,19 +171,19 @@ export async function DELETE(
 
         const { id } = await params
         const seriesId = validateIntId(id, 'series ID')
-        await validateStorySeriesExists(seriesId)
+        await validateBookSeriesExists(seriesId)
 
         await prisma.$transaction(async (tx) => {
-            await tx.storySeriesStories.deleteMany({ where: { story_series_id: seriesId } })
-            await tx.storySeries.delete({ where: { id: seriesId } })
+            await tx.bookSeriesBooks.deleteMany({ where: { book_series_id: seriesId } })
+            await tx.bookSeries.delete({ where: { id: seriesId } })
         })
 
-        return NextResponse.json({ message: 'Story series deleted successfully' })
+        return NextResponse.json({ message: 'Book series deleted successfully' })
     } catch (error) {
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
-        console.error('Delete story series error:', error)
-        return NextResponse.json({ error: 'Failed to delete story series' }, { status: 500 })
+        console.error('Delete book series error:', error)
+        return NextResponse.json({ error: 'Failed to delete book series' }, { status: 500 })
     }
 }

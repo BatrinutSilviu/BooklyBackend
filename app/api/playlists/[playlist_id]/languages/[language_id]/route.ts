@@ -30,7 +30,7 @@ import {
  *         description: Language ID
  *     responses:
  *       200:
- *         description: Playlist with stories and their translations for the given language
+ *         description: Playlist with books and their translations for the given language
  *         content:
  *           application/json:
  *             schema:
@@ -45,7 +45,7 @@ import {
  *                 created_at:
  *                   type: string
  *                   format: date-time
- *                 playlistStories:
+ *                 playlistBooks:
  *                   type: array
  *                   description: Sorted by order ascending
  *                   items:
@@ -55,14 +55,14 @@ import {
  *                         type: integer
  *                       playlist_id:
  *                         type: integer
- *                       story_id:
+ *                       book_id:
  *                         type: integer
  *                       order:
  *                         type: integer
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                       story:
+ *                       book:
  *                         type: object
  *                         properties:
  *                           id:
@@ -70,7 +70,7 @@ import {
  *                           photo_url:
  *                             type: string
  *                             nullable: true
- *                           storyTranslations:
+ *                           bookTranslations:
  *                             type: array
  *                             description: Contains one translation for the requested language
  *                             items:
@@ -110,14 +110,14 @@ export async function GET(
                         user_id: true,
                     }
                 },
-                playlistStories: {
+                playlistBooks: {
                     orderBy: {
                         order: 'asc'
                     },
                     include: {
-                        story: {
+                        book: {
                             include: {
-                                storyTranslations: {
+                                bookTranslations: {
                                     select: {
                                         id: true,
                                         title: true,

@@ -4,23 +4,27 @@ import {getAuthenticatedUser} from "@/lib/auth";
 
 /**
  * @swagger
- * /api/stories/{story_id}/languages:
+ * /api/books/{book_id}/languages/{language_id}/minified:
  *   get:
- *     summary: Gets all translations of a story
+ *     summary: Gets a summary book translation by language
  *     tags:
- *       - Stories
+ *       - Books
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: story_id
+ *         name: book_id
  *         required: true
  *         schema:
  *           type: integer
- *         description: The story ID
+ *       - in: path
+ *         name: language_id
+ *         required: true
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
- *         description: List of story translations with language info
+ *         description: Book summary without pages (title, description, cover and duration)
  *         content:
  *           application/json:
  *             schema:
@@ -30,21 +34,22 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                 properties:
  *                   id:
  *                     type: integer
- *                     description: StoryTranslation ID
+ *                     description: BookTranslation ID
  *                   title:
  *                     type: string
  *                   description:
  *                     type: string
  *                     nullable: true
- *                   language:
+ *                   book:
  *                     type: object
  *                     properties:
- *                       id:
+ *                       photo_url:
+ *                         type: string
+ *                         nullable: true
+ *                       duration:
  *                         type: integer
- *                       name:
- *                         type: string
- *                       country_code:
- *                         type: string
+ *                         nullable: true
+ *                         description: Book duration in seconds
  *       401:
  *         description: Unauthorized
  *       500:
@@ -52,7 +57,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  */
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ id: string }> }
+    { params }: { params: Promise<{ id: string; language_id: string }> }
 ) {
     try {
         const { user, error } = await getAuthenticatedUser()
@@ -61,35 +66,37 @@ export async function GET(
             return error
         }
 
-        const { id } = await params
-        const storyId = parseInt(id, 10)
+        const { id, language_id } = await params
+        const bookIdParsed = parseInt(id, 10)
+        const languageIdParsed = parseInt(language_id, 10)
 
-        const storyTranslations = await prisma.storyTranslations.findMany({
+        const bookTranslations = await prisma.bookTranslations.findMany({
             where: {
-                story_id : storyId
+                book_id : bookIdParsed,
+                language_id: languageIdParsed
             },
             select: {
                 id: true,
                 title: true,
                 description: true,
-                language: {
+                book: {
                     select: {
-                        id: true,
-                        name: true,
-                        country_code: true,
+                        photo_url: true,
+                        duration: true,
+                        status: true
                     }
-                },
+                }
             }
         })
 
-        if (!storyTranslations) {
+        if (!bookTranslations) {
             return NextResponse.json(
                 { error: 'Profile not found' },
                 { status: 404 }
             )
         }
 
-        return NextResponse.json(storyTranslations)
+        return NextResponse.json(bookTranslations)
     } catch (error) {
         console.error('Route error:', error)
         return NextResponse.json(

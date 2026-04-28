@@ -14,12 +14,12 @@ import {
 
 /**
  * @swagger
- * /api/stories:
+ * /api/books:
  *   get:
- *     summary: Get all stories
- *     description: Returns paginated stories with their translations, pages, and categories
+ *     summary: Get all books
+ *     description: Returns paginated books with their translations, pages, and categories
  *     tags:
- *       - Stories
+ *       - Books
  *     security:
  *       - BearerAuth: []
  *     parameters:
@@ -39,7 +39,7 @@ import {
  *         name: language_id
  *         schema:
  *           type: integer
- *         description: Filter stories that have a translation in this language
+ *         description: Filter books that have a translation in this language
  *       - in: query
  *         name: name
  *         schema:
@@ -49,10 +49,10 @@ import {
  *         name: category_id
  *         schema:
  *           type: integer
- *         description: Filter stories belonging to this category
+ *         description: Filter books belonging to this category
  *     responses:
  *       200:
- *         description: Paginated list of stories
+ *         description: Paginated list of books
  *         content:
  *           application/json:
  *             schema:
@@ -76,11 +76,11 @@ import {
  *                       created_at:
  *                         type: string
  *                         format: date-time
- *                       storyCategories:
+ *                       bookCategories:
  *                         type: array
  *                         items:
  *                           type: object
- *                       storyTranslations:
+ *                       bookTranslations:
  *                         type: array
  *                         items:
  *                           type: object
@@ -116,7 +116,7 @@ export async function GET(request: Request) {
 
         const where = {
             ...(languageId || name ? {
-                storyTranslations: {
+                bookTranslations: {
                     some: {
                         ...(languageId ? { language_id: languageId } : {}),
                         ...(name ? { title: { contains: name, mode: 'insensitive' as const } } : {})
@@ -124,16 +124,16 @@ export async function GET(request: Request) {
                 }
             } : {}),
             ...(categoryId ? {
-                storyCategories: { some: { category_id: categoryId } }
+                bookCategories: { some: { category_id: categoryId } }
             } : {})
         }
 
-        const [total, stories] = await Promise.all([
-            prisma.stories.count({ where }),
-            prisma.stories.findMany({
+        const [total, books] = await Promise.all([
+            prisma.books.count({ where }),
+            prisma.books.findMany({
                 where,
                 include: {
-                    storyCategories: {
+                    bookCategories: {
                         include: {
                             category: {
                                 include: {
@@ -148,12 +148,12 @@ export async function GET(request: Request) {
                             }
                         }
                     },
-                    storyTranslations: {
+                    bookTranslations: {
                         include: {
                             language: {
                                 select: { id: true, name: true, country_code: true }
                             },
-                            storyPages: { orderBy: { page_number: 'asc' } }
+                            bookPages: { orderBy: { page_number: 'asc' } }
                         }
                     }
                 },
@@ -164,29 +164,29 @@ export async function GET(request: Request) {
         ])
 
         return NextResponse.json({
-            data: stories,
+            data: books,
             pagination: { total, page, limit, totalPages: Math.ceil(total / limit) }
         })
     } catch (error) {
-        console.error('Get stories error:', error)
-        return NextResponse.json({ error: 'Failed to fetch stories' }, { status: 500 })
+        console.error('Get books error:', error)
+        return NextResponse.json({ error: 'Failed to fetch books' }, { status: 500 })
     }
 }
 
 /**
  * @swagger
- * /api/stories:
+ * /api/books:
  *   post:
- *     summary: Create a story with pages and upload photos (admin only)
+ *     summary: Create a book with pages and upload photos (admin only)
  *     description: |
- *       Creates a story with a language-specific title and one page per entry.
+ *       Creates a book with a language-specific title and one page per entry.
  *       Each page has its own text and optionally its own photo.
  *
  *       Send as `multipart/form-data`. Page metadata is passed as a JSON string
  *       in the `pages` field. Page photos are uploaded as separate file fields
  *       named `page_photo_{page_number}` (e.g. `page_photo_1`, `page_photo_2`).
  *     tags:
- *       - Stories
+ *       - Books
  *     security:
  *       - BearerAuth: []
  *     requestBody:
@@ -210,15 +210,15 @@ export async function GET(request: Request) {
  *                 type: string
  *               series_ids:
  *                 type: string
- *                 description: JSON array of series IDs to assign the story to (e.g. [1,2])
+ *                 description: JSON array of series IDs to assign the book to (e.g. [1,2])
  *               category_ids:
  *                 type: string
  *                 description: JSON array of category IDs, e.g. "[1, 2]"
  *                 example: "[1, 2]"
- *               story_photo:
+ *               book_photo:
  *                 type: string
  *                 format: binary
- *                 description: Cover photo for the story (JPEG, PNG, WebP, or GIF, max 5MB)
+ *                 description: Cover photo for the book (JPEG, PNG, WebP, or GIF, max 5MB)
  *               pages:
  *                 type: string
  *                 description: |
@@ -234,7 +234,7 @@ export async function GET(request: Request) {
  *                   Accepts JPEG, PNG, WebP, or GIF, max 5MB.
  *     responses:
  *       201:
- *         description: Story created successfully
+ *         description: Book created successfully
  *         content:
  *           application/json:
  *             schema:
@@ -250,7 +250,7 @@ export async function GET(request: Request) {
  *                 created_at:
  *                   type: string
  *                   format: date-time
- *                 storyCategories:
+ *                 bookCategories:
  *                   type: array
  *                   items:
  *                     type: object
@@ -273,7 +273,7 @@ export async function GET(request: Request) {
  *                                   type: string
  *                                 language_id:
  *                                   type: integer
- *                 storyTranslations:
+ *                 bookTranslations:
  *                   type: array
  *                   items:
  *                     type: object
@@ -294,7 +294,7 @@ export async function GET(request: Request) {
  *                             type: string
  *                           country_code:
  *                             type: string
- *                       storyPages:
+ *                       bookPages:
  *                         type: array
  *                         items:
  *                           type: object
@@ -331,7 +331,7 @@ export async function POST(request: Request) {
         const series_ids_raw = formData.get('series_ids') as string | null
         const category_ids_raw = formData.get('category_ids') as string | null
         const pages_raw = formData.get('pages') as string | null
-        const story_photo = formData.get('story_photo') as File | null
+        const book_photo = formData.get('book_photo') as File | null
 
         validateRequired(title, 'title')
         const languageId = validateIntId(formData.get('language_id'), 'language_id')
@@ -347,9 +347,9 @@ export async function POST(request: Request) {
             ? validateJsonArray<number>(series_ids_raw, 'series_ids', 0)
             : []
 
-        // Upload story cover photo if provided
-        const story_photo_url = story_photo && story_photo.size > 0
-            ? await uploadPhoto(story_photo, 'story-cover', user.id)
+        // Upload book cover photo if provided
+        const book_photo_url = book_photo && book_photo.size > 0
+            ? await uploadPhoto(book_photo, 'book-cover', user.id)
             : null
 
         // Upload per-page photos in parallel
@@ -357,7 +357,7 @@ export async function POST(request: Request) {
             pages.map(async (page) => {
                 const pagePhoto = formData.get(`page_photo_${page.page_number}`) as File | null
                 if (!pagePhoto || pagePhoto.size === 0) return { page_number: page.page_number, url: null }
-                const url = await uploadPhoto(pagePhoto, 'story-page', user.id, `page ${page.page_number}`)
+                const url = await uploadPhoto(pagePhoto, 'book-page', user.id, `page ${page.page_number}`)
                 return { page_number: page.page_number, url }
             })
         )
@@ -366,21 +366,21 @@ export async function POST(request: Request) {
             pagePhotoResults.map(r => [r.page_number, r.url])
         )
 
-        const story = await prisma.stories.create({
+        const book = await prisma.books.create({
             data: {
-                photo_url: story_photo_url,
-                storySeriesStories: series_ids.length > 0 ? {
-                    create: series_ids.map((story_series_id: number) => ({ story_series_id }))
+                photo_url: book_photo_url,
+                bookSeriesBooks: series_ids.length > 0 ? {
+                    create: series_ids.map((book_series_id: number) => ({ book_series_id }))
                 } : undefined,
-                storyCategories: category_ids.length > 0 ? {
+                bookCategories: category_ids.length > 0 ? {
                     create: category_ids.map((category_id: number) => ({ category_id }))
                 } : undefined,
-                storyTranslations: {
+                bookTranslations: {
                     create: {
                         language_id: languageId,
                         title: (title as string).trim(),
                         description: description?.trim() || null,
-                        storyPages: {
+                        bookPages: {
                             create: pages.map(page => ({
                                 page_number: page.page_number,
                                 text_content: page.text_content,
@@ -391,28 +391,28 @@ export async function POST(request: Request) {
                 }
             },
             include: {
-                storyCategories: {
+                bookCategories: {
                     include: {
                         category: {
                             include: { categoryTranslations: true }
                         }
                     }
                 },
-                storyTranslations: {
+                bookTranslations: {
                     include: {
                         language: true,
-                        storyPages: { orderBy: { page_number: 'asc' } }
+                        bookPages: { orderBy: { page_number: 'asc' } }
                     }
                 }
             }
         })
 
-        return NextResponse.json(story, { status: 201 })
+        return NextResponse.json(book, { status: 201 })
     } catch (error) {
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
-        console.error('Create complete story error:', error)
-        return NextResponse.json({ error: 'Failed to create story' }, { status: 500 })
+        console.error('Create complete book error:', error)
+        return NextResponse.json({ error: 'Failed to create book' }, { status: 500 })
     }
 }

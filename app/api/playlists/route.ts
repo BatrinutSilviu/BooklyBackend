@@ -20,12 +20,12 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *             required:
  *               - name
  *               - profile_id
- *               - story_ids
+ *               - book_ids
  *             properties:
  *               profile_id:
  *                 type: integer
  *                 example: 1
- *               story_ids:
+ *               book_ids:
  *                 type: array
  *                 items:
  *                   type: integer
@@ -51,11 +51,11 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *                   type: string
  *                   format: date-time
  *       400:
- *         description: Bad request - missing fields, empty story_ids, or stories not found
+ *         description: Bad request - missing fields, empty book_ids, or books not found
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Profile or story not found
+ *         description: Profile or book not found
  *       500:
  *         description: Server error
  */
@@ -67,27 +67,27 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        const { profile_id, name, story_ids } = body
+        const { profile_id, name, book_ids } = body
 
-        if (!profile_id || !name || !story_ids) {
+        if (!profile_id || !name || !book_ids) {
             return NextResponse.json(
-                { error: 'profile_id, name, and story_ids are required' },
+                { error: 'profile_id, name, and book_ids are required' },
                 { status: 400 }
             )
         }
 
         const profileIdParsed = parseInt(profile_id, 10)
 
-        if (!Array.isArray(story_ids)) {
+        if (!Array.isArray(book_ids)) {
             return NextResponse.json(
-                { error: 'story_ids must be an array' },
+                { error: 'book_ids must be an array' },
                 { status: 400 }
             )
         }
 
-        if (story_ids.length === 0) {
+        if (book_ids.length === 0) {
             return NextResponse.json(
-                { error: 'story_ids array cannot be empty' },
+                { error: 'book_ids array cannot be empty' },
                 { status: 400 }
             )
         }
@@ -110,17 +110,17 @@ export async function POST(request: Request) {
             )
         }
 
-        const stories = await prisma.stories.findMany({
+        const books = await prisma.books.findMany({
             where: {
-                id: { in: story_ids }
+                id: { in: book_ids }
             }
         })
 
-        if (stories.length !== story_ids.length) {
-            const foundIds = stories.map(s => s.id)
-            const missingIds = story_ids.filter(id => !foundIds.includes(id))
+        if (books.length !== book_ids.length) {
+            const foundIds = books.map(s => s.id)
+            const missingIds = book_ids.filter(id => !foundIds.includes(id))
             return NextResponse.json(
-                { error: `Stories not found: ${missingIds.join(', ')}` },
+                { error: `Books not found: ${missingIds.join(', ')}` },
                 { status: 404 }
             )
         }
@@ -129,9 +129,9 @@ export async function POST(request: Request) {
             data: {
                 profile_id: profileIdParsed,
                 name: name.trim(),
-                playlistStories: {
-                    create: story_ids.map((story_id, index) => ({
-                        story_id,
+                playlistBooks: {
+                    create: book_ids.map((book_id, index) => ({
+                        book_id,
                         order: index
                     }))
                 }

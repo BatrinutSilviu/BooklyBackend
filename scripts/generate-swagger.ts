@@ -17,7 +17,7 @@ const spec = createSwaggerSpec({
                 description: 'Development server',
             },
             {
-                url: 'https://story-teller-batrinutsilvius-projects.vercel.app',
+                url: 'https://book-teller-batrinutsilvius-projects.vercel.app',
                 description: 'Production server',
             },
         ],

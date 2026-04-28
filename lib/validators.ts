@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import {Languages, Stories, Playlists, Categories, Profiles, StorySeries} from '@prisma/client';
+import {Languages, Books, Playlists, Categories, Profiles, BookSeries} from '@prisma/client';
 
 export class ValidationError extends Error {
     constructor(
@@ -35,13 +35,13 @@ export async function validateLanguageExists(languageId: any): Promise<Languages
     )
 }
 
-export async function validateStoryExists(storyId: any): Promise<Stories> {
-    const id = validateIntId(storyId)
+export async function validateBookExists(bookId: any): Promise<Books> {
+    const id = validateIntId(bookId)
 
     return validateExists(
-        prisma.stories,
+        prisma.books,
         id,
-        'Story'
+        'Book'
     )
 }
 
@@ -55,13 +55,13 @@ export async function validateCategoryExists(categoryId: any): Promise<Categorie
     )
 }
 
-export async function validateStorySeriesExists(id: any): Promise<StorySeries> {
+export async function validateBookSeriesExists(id: any): Promise<BookSeries> {
     const seriesId = validateIntId(id)
 
     return validateExists(
-        prisma.storySeries,
+        prisma.bookSeries,
         seriesId,
-        'Story series'
+        'Book series'
     )
 }
 
@@ -130,18 +130,18 @@ export async function validateCategoriesExist(categoryIds: number[]) {
     return categories
 }
 
-export async function validateStoriesExist(storyIds: number[]) {
-    const stories = await prisma.stories.findMany({
-        where: { id: { in: storyIds } }
+export async function validateBooksExist(bookIds: number[]) {
+    const books = await prisma.books.findMany({
+        where: { id: { in: bookIds } }
     })
 
-    if (stories.length !== storyIds.length) {
-        const foundIds = stories.map(s => s.id)
-        const missingIds = storyIds.filter(id => !foundIds.includes(id))
-        throw new ValidationError(`Stories not found: ${missingIds.join(', ')}`, 404)
+    if (books.length !== bookIds.length) {
+        const foundIds = books.map(s => s.id)
+        const missingIds = bookIds.filter(id => !foundIds.includes(id))
+        throw new ValidationError(`Books not found: ${missingIds.join(', ')}`, 404)
     }
 
-    return stories
+    return books
 }
 
 export function validateIntId(id: any, fieldName: string = 'ID'): number {

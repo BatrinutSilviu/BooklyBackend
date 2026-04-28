@@ -5,7 +5,7 @@ import { uploadPhoto, deletePhoto } from '@/lib/upload'
 import {
     ValidationError,
     validateIntId,
-    validateStoryExists,
+    validateBookExists,
     validateJsonArray,
     validatePages,
     validateLanguageExists,
@@ -21,8 +21,8 @@ export async function PUT(
         if (authError) return authError
 
         const { id } = await params
-        const storyId = validateIntId(id, 'story ID')
-        const existingStory = await validateStoryExists(storyId)
+        const bookId = validateIntId(id, 'book ID')
+        const existingBook = await validateBookExists(bookId)
 
         const formData = await request.formData()
         const language_id_raw = formData.get('language_id') as string | null
@@ -30,7 +30,7 @@ export async function PUT(
         const description = formData.get('description') as string | null
         const category_ids_raw = formData.get('category_ids') as string | null
         const pages_raw = formData.get('pages') as string | null
-        const story_photo = formData.get('story_photo') as File | null
+        const book_photo = formData.get('book_photo') as File | null
         const status_raw = formData.get('status') as string | null
         const status = status_raw !== null ? status_raw === 'true' : undefined
 
@@ -57,7 +57,7 @@ export async function PUT(
                 pages.map(async (page) => {
                     const pagePhoto = formData.get(`page_photo_${page.page_number}`) as File | null
                     if (!pagePhoto || pagePhoto.size === 0) return { page_number: page.page_number, url: null }
-                    const url = await uploadPhoto(pagePhoto, 'story-page', user.id, `page ${page.page_number}`)
+                    const url = await uploadPhoto(pagePhoto, 'book-page', user.id, `page ${page.page_number}`)
                     return { page_number: page.page_number, url }
                 })
             )
@@ -66,42 +66,42 @@ export async function PUT(
 
         // Upload new cover photo if provided
         let photo_url: string | undefined = undefined
-        if (story_photo && story_photo.size > 0) {
-            if (existingStory.photo_url) {
-                try { await deletePhoto(existingStory.photo_url) } catch {}
+        if (book_photo && book_photo.size > 0) {
+            if (existingBook.photo_url) {
+                try { await deletePhoto(existingBook.photo_url) } catch {}
             }
-            photo_url = await uploadPhoto(story_photo, 'story-cover', user.id)
+            photo_url = await uploadPhoto(book_photo, 'book-cover', user.id)
         }
 
         // Run update in transaction
-        const updatedStory = await prisma.$transaction(async (tx) => {
-            // Update story cover + categories
-            const storyUpdate: any = {}
-            if (photo_url) storyUpdate.photo_url = photo_url
-            if (status !== undefined) storyUpdate.status = status
+        const updatedBook = await prisma.$transaction(async (tx) => {
+            // Update book cover + categories
+            const bookUpdate: any = {}
+            if (photo_url) bookUpdate.photo_url = photo_url
+            if (status !== undefined) bookUpdate.status = status
             if (category_ids !== null) {
-                storyUpdate.storyCategories = {
+                bookUpdate.bookCategories = {
                     deleteMany: {},
                     ...(category_ids.length > 0 ? {
                         create: category_ids.map((category_id: number) => ({ category_id }))
                     } : {})
                 }
             }
-            await tx.stories.update({ where: { id: storyId }, data: storyUpdate })
+            await tx.books.update({ where: { id: bookId }, data: bookUpdate })
 
-            // Upsert story translation
-            const existingTranslation = await tx.storyTranslations.findFirst({
-                where: { story_id: storyId, language_id: languageId }
+            // Upsert book translation
+            const existingTranslation = await tx.bookTranslations.findFirst({
+                where: { book_id: bookId, language_id: languageId }
             })
 
             if (existingTranslation) {
-                await tx.storyTranslations.update({
+                await tx.bookTranslations.update({
                     where: { id: existingTranslation.id },
                     data: {
                         title: title.trim(),
                         description: description?.trim() || null,
                         ...(pages ? {
-                            storyPages: {
+                            bookPages: {
                                 deleteMany: {},
                                 create: pages.map(page => ({
                                     page_number: page.page_number,
@@ -113,14 +113,14 @@ export async function PUT(
                     }
                 })
             } else {
-                await tx.storyTranslations.create({
+                await tx.bookTranslations.create({
                     data: {
-                        story_id: storyId,
+                        book_id: bookId,
                         language_id: languageId,
                         title: title.trim(),
                         description: description?.trim() || null,
                         ...(pages ? {
-                            storyPages: {
+                            bookPages: {
                                 create: pages.map(page => ({
                                     page_number: page.page_number,
                                     text_content: page.text_content,
@@ -132,33 +132,33 @@ export async function PUT(
                 })
             }
 
-            return tx.stories.findUnique({
-                where: { id: storyId },
+            return tx.books.findUnique({
+                where: { id: bookId },
                 include: {
-                    storyCategories: {
+                    bookCategories: {
                         include: {
                             category: {
                                 include: { categoryTranslations: { include: { language: true } } }
                             }
                         }
                     },
-                    storyTranslations: {
+                    bookTranslations: {
                         include: {
                             language: true,
-                            storyPages: { orderBy: { page_number: 'asc' } }
+                            bookPages: { orderBy: { page_number: 'asc' } }
                         }
                     }
                 }
             })
         })
 
-        return NextResponse.json(updatedStory)
+        return NextResponse.json(updatedBook)
     } catch (error) {
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
-        console.error('Update story error:', error)
-        return NextResponse.json({ error: 'Failed to update story' }, { status: 500 })
+        console.error('Update book error:', error)
+        return NextResponse.json({ error: 'Failed to update book' }, { status: 500 })
     }
 }
 
@@ -171,34 +171,34 @@ export async function DELETE(
         if (authError) return authError
 
         const { id } = await params
-        const storyId = validateIntId(id, 'story ID')
-        const story = await validateStoryExists(storyId)
+        const bookId = validateIntId(id, 'book ID')
+        const book = await validateBookExists(bookId)
 
         await prisma.$transaction(async (tx) => {
             // Delete pages for all translations
-            const translations = await tx.storyTranslations.findMany({ where: { story_id: storyId } })
+            const translations = await tx.bookTranslations.findMany({ where: { book_id: bookId } })
             const translationIds = translations.map(t => t.id)
             if (translationIds.length > 0) {
-                await tx.storyPages.deleteMany({ where: { story_translation_id: { in: translationIds } } })
+                await tx.bookPages.deleteMany({ where: { book_translation_id: { in: translationIds } } })
             }
-            await tx.storyTranslations.deleteMany({ where: { story_id: storyId } })
-            await tx.storyCategories.deleteMany({ where: { story_id: storyId } })
-            await tx.storySeriesStories.deleteMany({ where: { story_id: storyId } })
-            await tx.playlistStories.deleteMany({ where: { story_id: storyId } })
-            await tx.favorites.deleteMany({ where: { story_id: storyId } })
-            await tx.stories.delete({ where: { id: storyId } })
+            await tx.bookTranslations.deleteMany({ where: { book_id: bookId } })
+            await tx.bookCategories.deleteMany({ where: { book_id: bookId } })
+            await tx.bookSeriesBooks.deleteMany({ where: { book_id: bookId } })
+            await tx.playlistBooks.deleteMany({ where: { book_id: bookId } })
+            await tx.favorites.deleteMany({ where: { book_id: bookId } })
+            await tx.books.delete({ where: { id: bookId } })
         })
 
-        if (story.photo_url) {
-            try { await deletePhoto(story.photo_url) } catch {}
+        if (book.photo_url) {
+            try { await deletePhoto(book.photo_url) } catch {}
         }
 
-        return NextResponse.json({ message: 'Story deleted successfully', id: storyId })
+        return NextResponse.json({ message: 'Book deleted successfully', id: bookId })
     } catch (error) {
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
-        console.error('Delete story error:', error)
-        return NextResponse.json({ error: 'Failed to delete story' }, { status: 500 })
+        console.error('Delete book error:', error)
+        return NextResponse.json({ error: 'Failed to delete book' }, { status: 500 })
     }
 }

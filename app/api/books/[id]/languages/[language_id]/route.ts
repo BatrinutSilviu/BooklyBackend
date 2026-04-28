@@ -4,16 +4,16 @@ import {getAuthenticatedUser} from "@/lib/auth";
 
 /**
  * @swagger
- * /api/stories/{story_id}/languages/{language_id}:
+ * /api/books/{book_id}/languages/{language_id}:
  *   get:
- *     summary: Gets a story translation by language
+ *     summary: Gets a book translation by language
  *     tags:
- *       - Stories
+ *       - Books
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: story_id
+ *         name: book_id
  *         required: true
  *         schema:
  *           type: integer
@@ -30,7 +30,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *         description: Number of pages to return
  *     responses:
  *       200:
- *         description: Story translation with paginated pages
+ *         description: Book translation with paginated pages
  *         content:
  *           application/json:
  *             schema:
@@ -40,13 +40,13 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                 properties:
  *                   id:
  *                     type: integer
- *                     description: StoryTranslation ID
+ *                     description: BookTranslation ID
  *                   title:
  *                     type: string
  *                   description:
  *                     type: string
  *                     nullable: true
- *                   story:
+ *                   book:
  *                     type: object
  *                     properties:
  *                       photo_url:
@@ -61,7 +61,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                         type: string
  *                       country_code:
  *                         type: string
- *                   storyPages:
+ *                   bookPages:
  *                     type: array
  *                     items:
  *                       type: object
@@ -95,22 +95,22 @@ export async function GET(
         }
 
         const { id, language_id } = await params
-        const storyIdParsed = parseInt(id, 10)
+        const bookIdParsed = parseInt(id, 10)
         const languageIdParsed = parseInt(language_id, 10)
 
         const { searchParams } = new URL(request.url)
         const pages = parseInt(searchParams.get('pages') || '5', 10)
 
-        const storyTranslations = await prisma.storyTranslations.findMany({
+        const bookTranslations = await prisma.bookTranslations.findMany({
             where: {
-                story_id : storyIdParsed,
+                book_id : bookIdParsed,
                 language_id: languageIdParsed
             },
             select: {
                 id: true,
                 title: true,
                 description: true,
-                story: {
+                book: {
                     select: {
                         photo_url: true,
                         status: true
@@ -123,7 +123,7 @@ export async function GET(
                         country_code: true,
                     }
                 },
-                storyPages: {
+                bookPages: {
                     take: pages,
                     orderBy: {
                         id: 'asc'
@@ -139,14 +139,14 @@ export async function GET(
             }
         })
 
-        if (!storyTranslations) {
+        if (!bookTranslations) {
             return NextResponse.json(
                 { error: 'Profile not found' },
                 { status: 404 }
             )
         }
 
-        return NextResponse.json(storyTranslations)
+        return NextResponse.json(bookTranslations)
     } catch (error) {
         console.error('Route error:', error)
         return NextResponse.json(

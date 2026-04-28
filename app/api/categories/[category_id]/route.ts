@@ -59,7 +59,7 @@ import { uploadPhoto, deletePhoto } from '@/lib/upload'
  *                 _count:
  *                   type: object
  *                   properties:
- *                     storyCategories:
+ *                     bookCategories:
  *                       type: integer
  *                     profileCategories:
  *                       type: integer
@@ -106,7 +106,7 @@ export async function GET(
                 },
                 _count: {
                     select: {
-                        storyCategories: true,
+                        bookCategories: true,
                         profileCategories: true
                     }
                 }
@@ -274,7 +274,7 @@ export async function PUT(
                 where: { id: categoryId },
                 include: {
                     categoryTranslations: { include: { language: true } },
-                    _count: { select: { storyCategories: true, profileCategories: true } }
+                    _count: { select: { bookCategories: true, profileCategories: true } }
                 }
             })
         })
@@ -338,7 +338,7 @@ export async function PUT(
  *                 details:
  *                   type: object
  *                   properties:
- *                     stories:
+ *                     books:
  *                       type: integer
  *                     profiles:
  *                       type: integer
@@ -367,7 +367,7 @@ export async function DELETE(
             include: {
                 _count: {
                     select: {
-                        storyCategories: true,
+                        bookCategories: true,
                         profileCategories: true
                     }
                 }
@@ -379,12 +379,12 @@ export async function DELETE(
         }
 
         // Check if category is in use
-        if (category._count.storyCategories > 0 || category._count.profileCategories > 0) {
+        if (category._count.bookCategories > 0 || category._count.profileCategories > 0) {
             return NextResponse.json(
                 {
                     error: 'Cannot delete category - it is being used',
                     details: {
-                        stories: category._count.storyCategories,
+                        books: category._count.bookCategories,
                         profiles: category._count.profileCategories
                     }
                 },

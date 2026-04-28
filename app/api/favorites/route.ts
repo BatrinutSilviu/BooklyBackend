@@ -18,10 +18,10 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *           schema:
  *             type: object
  *             required:
- *               - story_id
+ *               - book_id
  *               - profile_id
  *             properties:
- *               story_id:
+ *               book_id:
  *                 type: integer
  *                 example: 1
  *               profile_id:
@@ -39,17 +39,17 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *                   type: integer
  *                 profile_id:
  *                   type: integer
- *                 story_id:
+ *                 book_id:
  *                   type: integer
  *                 created_at:
  *                   type: string
  *                   format: date-time
  *       400:
- *         description: Bad request - missing profile_id or story_id
+ *         description: Bad request - missing profile_id or book_id
  *       401:
  *         description: Unauthorized
  *       404:
- *         description: Profile or story not found
+ *         description: Profile or book not found
  *       409:
  *         description: Favorite already exists
  *       500:
@@ -63,17 +63,17 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json()
-        const { profile_id, story_id } = body
+        const { profile_id, book_id } = body
 
-        if (!profile_id || !story_id) {
+        if (!profile_id || !book_id) {
             return NextResponse.json(
-                { error: 'profile_id and story_id are required' },
+                { error: 'profile_id and book_id are required' },
                 { status: 400 }
             )
         }
 
         const profileIdParsed = parseInt(profile_id, 10)
-        const storyIdParsed = parseInt(story_id, 10)
+        const bookIdParsed = parseInt(book_id, 10)
 
         const existingProfile = await prisma.profiles.findUnique({
             where: { id: profileIdParsed }
@@ -86,13 +86,13 @@ export async function POST(request: Request) {
             )
         }
 
-        const existingStory = await prisma.stories.findUnique({
-            where: { id: storyIdParsed }
+        const existingBook = await prisma.books.findUnique({
+            where: { id: bookIdParsed }
         })
 
-        if (!existingStory) {
+        if (!existingBook) {
             return NextResponse.json(
-                { error: 'Story not found' },
+                { error: 'Book not found' },
                 { status: 404 }
             )
         }
@@ -100,7 +100,7 @@ export async function POST(request: Request) {
         const existingFavorite = await prisma.favorites.findFirst({
             where: {
                 profile_id: profileIdParsed,
-                story_id: storyIdParsed,
+                book_id: bookIdParsed,
             }
         })
 
@@ -113,7 +113,7 @@ export async function POST(request: Request) {
 
         const favorite = await prisma.favorites.create({
             data: {
-                story_id: storyIdParsed,
+                book_id: bookIdParsed,
                 profile_id: profileIdParsed,
             }
         })

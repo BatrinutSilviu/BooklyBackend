@@ -221,7 +221,7 @@ export async function PUT(
  *                 deleted:
  *                   type: object
  *                   properties:
- *                     playlistStories:
+ *                     playlistBooks:
  *                       type: integer
  *                     playlists:
  *                       type: integer
@@ -267,7 +267,7 @@ export async function DELETE(
                 favorites: true,
                 playlists: {
                     include: {
-                        playlistStories: true
+                        playlistBooks: true
                     }
                 }
             }
@@ -290,8 +290,8 @@ export async function DELETE(
         const playlistIds = profile.playlists.map(p => p.id)
 
         const result = await prisma.$transaction(async (tx) => {
-            const deletedPlaylistStories = playlistIds.length > 0
-                ? await tx.playlistStories.deleteMany({
+            const deletedPlaylistBooks = playlistIds.length > 0
+                ? await tx.playlistBooks.deleteMany({
                     where: { playlist_id: { in: playlistIds } }
                 })
                 : { count: 0 }
@@ -313,7 +313,7 @@ export async function DELETE(
             })
 
             return {
-                deletedPlaylistStories: deletedPlaylistStories.count,
+                deletedPlaylistBooks: deletedPlaylistBooks.count,
                 deletedPlaylists: deletedPlaylists.count,
                 deletedFavorites: deletedFavorites.count,
                 deletedProfileCategories: deletedProfileCategories.count,
@@ -324,7 +324,7 @@ export async function DELETE(
             message: 'Profile deleted successfully',
             id: profileId,
             deleted: {
-                playlistStories: result.deletedPlaylistStories,
+                playlistBooks: result.deletedPlaylistBooks,
                 playlists: result.deletedPlaylists,
                 favorites: result.deletedFavorites,
                 profileCategories: result.deletedProfileCategories,

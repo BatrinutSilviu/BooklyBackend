@@ -20,7 +20,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *         description: The profile ID
  *     responses:
  *       200:
- *         description: List of playlists for the profile with story entries sorted by order
+ *         description: List of playlists for the profile with book entries sorted by order
  *         content:
  *           application/json:
  *             schema:
@@ -32,7 +32,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                     type: integer
  *                   name:
  *                     type: string
- *                   playlistStories:
+ *                   playlistBooks:
  *                     type: array
  *                     items:
  *                       type: object
@@ -41,7 +41,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                           type: integer
  *                         order:
  *                           type: integer
- *                         story_id:
+ *                         book_id:
  *                           type: integer
  *       400:
  *         description: Invalid profile ID
@@ -92,11 +92,11 @@ export async function GET(
             select: {
                 id: true,
                 name: true,
-                playlistStories: {
+                playlistBooks: {
                     select: {
                         id: true,
                         order: true,
-                        story_id: true,
+                        book_id: true,
                     },
                     orderBy: {
                         order: 'asc'

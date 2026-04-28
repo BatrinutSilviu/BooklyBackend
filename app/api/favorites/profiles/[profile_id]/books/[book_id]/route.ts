@@ -4,9 +4,9 @@ import { getAuthenticatedUser } from '@/lib/auth'
 
 /**
  * @swagger
- * /api/favorites/profiles/{profile_id}/stories/{story_id}:
+ * /api/favorites/profiles/{profile_id}/books/{book_id}:
  *   delete:
- *     summary: Remove a favorite story
+ *     summary: Remove a favorite book
  *     tags:
  *       - Favorites
  *     security:
@@ -19,11 +19,11 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *           type: integer
  *         description: Profile ID
  *       - in: path
- *         name: story_id
+ *         name: book_id
  *         required: true
  *         schema:
  *           type: integer
- *         description: Story ID
+ *         description: Book ID
  *     responses:
  *       200:
  *         description: Favorite removed successfully
@@ -37,7 +37,7 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *                   example: Favorite removed successfully
  *                 profile_id:
  *                   type: integer
- *                 story_id:
+ *                 book_id:
  *                   type: integer
  *       400:
  *         description: Bad request - invalid IDs
@@ -52,19 +52,19 @@ import { getAuthenticatedUser } from '@/lib/auth'
  */
 export async function DELETE(
     request: Request,
-    { params }: { params: Promise<{ profile_id: string; story_id: string }> }
+    { params }: { params: Promise<{ profile_id: string; book_id: string }> }
 ) {
     try {
         const { user, error: authError } = await getAuthenticatedUser()
         if (authError) return authError
 
-        const { profile_id, story_id } = await params
+        const { profile_id, book_id } = await params
         const profileIdParsed = parseInt(profile_id, 10)
-        const storyIdParsed = parseInt(story_id, 10)
+        const bookIdParsed = parseInt(book_id, 10)
 
-        if (isNaN(profileIdParsed) || isNaN(storyIdParsed)) {
+        if (isNaN(profileIdParsed) || isNaN(bookIdParsed)) {
             return NextResponse.json(
-                { error: 'Invalid profile ID or story ID' },
+                { error: 'Invalid profile ID or book ID' },
                 { status: 400 }
             )
         }
@@ -88,13 +88,13 @@ export async function DELETE(
             )
         }
 
-        const existingStory = await prisma.stories.findUnique({
-            where: { id: storyIdParsed }
+        const existingBook = await prisma.books.findUnique({
+            where: { id: bookIdParsed }
         })
 
-        if (!existingStory) {
+        if (!existingBook) {
             return NextResponse.json(
-                { error: 'Story not found' },
+                { error: 'Book not found' },
                 { status: 404 }
             )
         }
@@ -102,7 +102,7 @@ export async function DELETE(
         const favorite = await prisma.favorites.findFirst({
             where: {
                 profile_id: profileIdParsed,
-                story_id: storyIdParsed
+                book_id: bookIdParsed
             }
         })
 
@@ -122,7 +122,7 @@ export async function DELETE(
         return NextResponse.json({
             message: 'Favorite removed successfully',
             profile_id: profileIdParsed,
-            story_id: storyIdParsed
+            book_id: bookIdParsed
         })
     } catch (error) {
         console.error('Remove favorite error:', error)

@@ -3,7 +3,7 @@ import { r2Client, BUCKET_NAME, PUBLIC_URL } from './r2'
 import { generateStorageKey, isValidImageType, getMaxFileSize } from './storage-utils'
 import { ValidationError } from './validators'
 
-export type PhotoType = 'avatar' | 'story-cover' | 'story-page' | 'category'
+export type PhotoType = 'avatar' | 'book-cover' | 'book-page' | 'category'
 
 /**
  * Validates, uploads a photo file to R2, and returns its public URL.

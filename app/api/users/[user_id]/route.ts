@@ -80,7 +80,7 @@ export async function DELETE(
                 const playlistIds = playlists.map(p => p.id)
 
                 if (playlistIds.length > 0) {
-                    await tx.playlistStories.deleteMany({ where: { playlist_id: { in: playlistIds } } })
+                    await tx.playlistBooks.deleteMany({ where: { playlist_id: { in: playlistIds } } })
                 }
 
                 await tx.profileCategories.deleteMany({ where: { profile_id: { in: profileIds } } })

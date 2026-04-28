@@ -4,9 +4,9 @@ import { getAuthenticatedUser } from '@/lib/auth'
 
 /**
  * @swagger
- * /api/playlists/{playlist_id}/stories/{story_id}:
+ * /api/playlists/{playlist_id}/books/{book_id}:
  *   delete:
- *     summary: Remove story from playlist
+ *     summary: Remove book from playlist
  *     tags:
  *       - Playlists
  *     security:
@@ -19,14 +19,14 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *           type: integer
  *         description: Playlist ID
  *       - in: path
- *         name: story_id
+ *         name: book_id
  *         required: true
  *         schema:
  *           type: integer
- *         description: Story ID
+ *         description: Book ID
  *     responses:
  *       200:
- *         description: Story removed from playlist successfully
+ *         description: Book removed from playlist successfully
  *         content:
  *           application/json:
  *             schema:
@@ -34,37 +34,37 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *               properties:
  *                 message:
  *                   type: string
- *                   example: Story removed from playlist successfully
+ *                   example: Book removed from playlist successfully
  *       400:
- *         description: Invalid playlist ID or story ID
+ *         description: Invalid playlist ID or book ID
  *       401:
  *         description: Unauthorized
  *       403:
  *         description: Forbidden - not your playlist
  *       404:
- *         description: Playlist, story, or playlist entry not found
+ *         description: Playlist, book, or playlist entry not found
  *       500:
  *         description: Server error
  */
 export async function DELETE(
     request: Request,
-    { params }: { params: Promise<{ playlist_id: string; story_id: string }> }
+    { params }: { params: Promise<{ playlist_id: string; book_id: string }> }
 ) {
     try {
         const { user, error: authError } = await getAuthenticatedUser()
         if (authError) return authError
 
-        const { playlist_id, story_id } = await params
+        const { playlist_id, book_id } = await params
 
-        if (!playlist_id || !story_id) {
+        if (!playlist_id || !book_id) {
             return NextResponse.json(
-                { error: 'playlist_id or story_id are required' },
+                { error: 'playlist_id or book_id are required' },
                 { status: 400 }
             )
         }
 
         const parsedPlaylistId = parseInt(playlist_id, 10)
-        const parsedStoryId = parseInt(story_id, 10)
+        const parsedBookId = parseInt(book_id, 10)
 
         const existingPlaylist = await prisma.playlists.findUnique({
             where: { id: parsedPlaylistId }
@@ -77,13 +77,13 @@ export async function DELETE(
             )
         }
 
-        const existingStory = await prisma.stories.findUnique({
-            where: { id: parsedStoryId }
+        const existingBook = await prisma.books.findUnique({
+            where: { id: parsedBookId }
         })
 
-        if (!existingStory) {
+        if (!existingBook) {
             return NextResponse.json(
-                { error: 'Story not found' },
+                { error: 'Book not found' },
                 { status: 404 }
             )
         }
@@ -113,31 +113,31 @@ export async function DELETE(
             )
         }
 
-        const playlistStory = await prisma.playlistStories.findFirst({
+        const playlistBook = await prisma.playlistBooks.findFirst({
             where: {
                 playlist_id: parsedPlaylistId,
-                story_id: parsedStoryId
+                book_id: parsedBookId
             }
         })
 
-        if (!playlistStory) {
+        if (!playlistBook) {
             return NextResponse.json(
-                { error: 'Story not found in playlist' },
+                { error: 'Book not found in playlist' },
                 { status: 404 }
             )
         }
 
-        await prisma.playlistStories.delete({
+        await prisma.playlistBooks.delete({
             where: {
-                id: playlistStory.id
+                id: playlistBook.id
             }
         })
 
-        await prisma.playlistStories.updateMany({
+        await prisma.playlistBooks.updateMany({
             where: {
                 playlist_id: parsedPlaylistId,
                 order: {
-                    gt: playlistStory.order
+                    gt: playlistBook.order
                 }
             },
             data: {
@@ -148,12 +148,12 @@ export async function DELETE(
         })
 
         return NextResponse.json({
-            message: 'Story removed from playlist successfully'
+            message: 'Book removed from playlist successfully'
         })
     } catch (error) {
-        console.error('Remove story from playlist error:', error)
+        console.error('Remove book from playlist error:', error)
         return NextResponse.json(
-            { error: 'Failed to remove story from playlist' },
+            { error: 'Failed to remove book from playlist' },
             { status: 500 }
         )
     }

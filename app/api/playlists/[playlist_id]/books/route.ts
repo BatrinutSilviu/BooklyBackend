@@ -4,9 +4,9 @@ import { getAuthenticatedUser } from '@/lib/auth'
 
 /**
  * @swagger
- * /api/playlists/{playlist_id}/stories:
+ * /api/playlists/{playlist_id}/books:
  *   post:
- *     summary: Add story to playlist
+ *     summary: Add book to playlist
  *     tags:
  *       - Playlists
  *     security:
@@ -25,11 +25,11 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *           schema:
  *             type: object
  *             required:
- *               - story_id
+ *               - book_id
  *             properties:
- *               story_id:
+ *               book_id:
  *                 type: integer
- *                 description: ID of the story to add
+ *                 description: ID of the book to add
  *                 example: 5
  *               position:
  *                 type: integer
@@ -37,7 +37,7 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *                 example: 2
  *     responses:
  *       201:
- *         description: Story added to playlist successfully
+ *         description: Book added to playlist successfully
  *         content:
  *           application/json:
  *             schema:
@@ -47,11 +47,11 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *                   type: integer
  *                 playlist_id:
  *                   type: integer
- *                 story_id:
+ *                 book_id:
  *                   type: integer
  *                 order:
  *                   type: integer
- *                 story:
+ *                 book:
  *                   type: object
  *                   properties:
  *                     id:
@@ -59,7 +59,7 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *                     photo_url:
  *                       type: string
  *                       nullable: true
- *                     storyTranslations:
+ *                     bookTranslations:
  *                       type: array
  *                       items:
  *                         type: object
@@ -87,9 +87,9 @@ import { getAuthenticatedUser } from '@/lib/auth'
  *       403:
  *         description: Forbidden - playlist doesn't belong to user
  *       404:
- *         description: Playlist or story not found
+ *         description: Playlist or book not found
  *       409:
- *         description: Story already in playlist
+ *         description: Book already in playlist
  *       500:
  *         description: Server error
  */
@@ -120,11 +120,11 @@ export async function POST(
         }
 
         const body = await request.json()
-        const { story_id, position } = body
+        const { book_id, position } = body
 
-        if (!story_id || typeof story_id !== 'number') {
+        if (!book_id || typeof book_id !== 'number') {
             return NextResponse.json(
-                { error: 'story_id is required and must be a number' },
+                { error: 'book_id is required and must be a number' },
                 { status: 400 }
             )
         }
@@ -137,7 +137,7 @@ export async function POST(
                         user_id: true
                     }
                 },
-                playlistStories: {
+                playlistBooks: {
                     orderBy: {
                         order: 'asc'
                     }
@@ -159,27 +159,27 @@ export async function POST(
             )
         }
 
-        const story = await prisma.stories.findUnique({
-            where: { id: story_id }
+        const book = await prisma.books.findUnique({
+            where: { id: book_id }
         })
 
-        if (!story) {
+        if (!book) {
             return NextResponse.json(
-                { error: 'Story not found' },
+                { error: 'Book not found' },
                 { status: 404 }
             )
         }
 
-        const existingPlaylistStory = await prisma.playlistStories.findFirst({
+        const existingPlaylistBook = await prisma.playlistBooks.findFirst({
             where: {
                 playlist_id: parsedPlaylistId,
-                story_id: story_id
+                book_id: book_id
             }
         })
 
-        if (!existingPlaylistStory) {
+        if (!existingPlaylistBook) {
             return NextResponse.json(
-                { error: 'Story already exists in this playlist' },
+                { error: 'Book already exists in this playlist' },
                 { status: 409 }
             )
         }
@@ -187,10 +187,10 @@ export async function POST(
         let newOrder: number
 
         if (position !== undefined && typeof position === 'number') {
-            const validPosition = Math.max(0, Math.min(position, playlist.playlistStories.length))
+            const validPosition = Math.max(0, Math.min(position, playlist.playlistBooks.length))
             newOrder = validPosition
 
-            await prisma.playlistStories.updateMany({
+            await prisma.playlistBooks.updateMany({
                 where: {
                     playlist_id: parsedPlaylistId,
                     order: {
@@ -204,19 +204,19 @@ export async function POST(
                 }
             })
         } else {
-            newOrder = playlist.playlistStories.length
+            newOrder = playlist.playlistBooks.length
         }
 
-        const playlistStory = await prisma.playlistStories.create({
+        const playlistBook = await prisma.playlistBooks.create({
             data: {
                 playlist_id: parsedPlaylistId,
-                story_id: story_id,
+                book_id: book_id,
                 order: newOrder
             },
             include: {
-                story: {
+                book: {
                     include: {
-                        storyTranslations: {
+                        bookTranslations: {
                             select: {
                                 id: true,
                                 title: true,
@@ -235,11 +235,11 @@ export async function POST(
             }
         })
 
-        return NextResponse.json(playlistStory, { status: 201 })
+        return NextResponse.json(playlistBook, { status: 201 })
     } catch (error) {
-        console.error('Add story to playlist error:', error)
+        console.error('Add book to playlist error:', error)
         return NextResponse.json(
-            { error: 'Failed to add story to playlist' },
+            { error: 'Failed to add book to playlist' },
             { status: 500 }
         )
     }

@@ -4,20 +4,20 @@ import {getAuthenticatedUser} from "@/lib/auth";
 
 /**
  * @swagger
- * /api/stories/{story_id}/categories/language/{language_id}:
+ * /api/books/categories/{category_id}/languages/{language_id}:
  *   get:
- *     summary: Gets all the categories of a story
+ *     summary: Gets all the books from a category by language
  *     tags:
- *       - Stories
+ *       - Books
  *     security:
  *       - BearerAuth: []
  *     parameters:
  *       - in: path
- *         name: story_id
+ *         name: category_id
  *         required: true
  *         schema:
  *           type: integer
- *         description: The story ID
+ *         description: The category ID
  *       - in: path
  *         name: language_id
  *         required: true
@@ -26,7 +26,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *         description: The language ID
  *     responses:
  *       200:
- *         description: List of categories for the story with translated names
+ *         description: List of books in the category with translation for the given language
  *         content:
  *           application/json:
  *             schema:
@@ -36,8 +36,8 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                 properties:
  *                   id:
  *                     type: integer
- *                     description: StoryCategory ID
- *                   category:
+ *                     description: BookCategory ID
+ *                   book:
  *                     type: object
  *                     properties:
  *                       id:
@@ -45,14 +45,19 @@ import {getAuthenticatedUser} from "@/lib/auth";
  *                       photo_url:
  *                         type: string
  *                         nullable: true
- *                       categoryTranslations:
+ *                       bookTranslations:
  *                         type: array
- *                         description: Contains one translation for the requested language
+ *                         description: Contains one translation for the requested language, sorted by title
  *                         items:
  *                           type: object
  *                           properties:
- *                             name:
+ *                             id:
+ *                               type: integer
+ *                             title:
  *                               type: string
+ *                             description:
+ *                               type: string
+ *                               nullable: true
  *       401:
  *         description: Unauthorized
  *       500:
@@ -60,7 +65,7 @@ import {getAuthenticatedUser} from "@/lib/auth";
  */
 export async function GET(
     request: Request,
-    { params }: { params: Promise<{ id: string, language_id: string }> }
+    { params }: { params: Promise<{ category_id: string, language_id: string }> }
 ) {
     try {
         const { user, error } = await getAuthenticatedUser()
@@ -69,42 +74,47 @@ export async function GET(
             return error
         }
 
-        const { id, language_id } = await params
-        const storyIdParsed = parseInt(id, 10)
+        const { category_id, language_id } = await params
+        const categoryIdParsed = parseInt(category_id, 10)
         const languageIdParsed = parseInt(language_id, 10)
 
-        const storyCategories = await prisma.storyCategories.findMany({
+        const bookCategories = await prisma.bookCategories.findMany({
             where: {
-                story_id : storyIdParsed
+                category_id : categoryIdParsed,
             },
             select: {
                 id: true,
-                category: {
+                book: {
                     select: {
                         id: true,
                         photo_url: true,
                         status: true,
-                        categoryTranslations: {
+                        bookTranslations: {
                             where: {
                                 language_id: languageIdParsed
                             },
                             select: {
-                                name: true
-                            }
+                                id: true,
+                                title: true,
+                                description: true,
+                            },
+                            orderBy: {
+                                title: 'asc'
+                            },
                         }
                     }
                 },
             }
         })
 
-        if (!storyCategories) {
+        if (!bookCategories) {
             return NextResponse.json(
                 { error: 'Profile not found' },
                 { status: 404 }
             )
         }
 
-        return NextResponse.json(storyCategories)
+        return NextResponse.json(bookCategories)
     } catch (error) {
         console.error('Route error:', error)
         return NextResponse.json(
