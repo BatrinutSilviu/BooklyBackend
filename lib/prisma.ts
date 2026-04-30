@@ -1,8 +1,10 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaPg } from '@prisma/adapter-pg'
 import { withRetry } from './retry'
 
 function createPrismaClient() {
-    return new PrismaClient().$extends({
+    const adapter = new PrismaPg(process.env.DATABASE_URL!)
+    return new PrismaClient({ adapter }).$extends({
         query: {
             $allModels: {
                 async $allOperations({ args, query }) {

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import {Languages, Books, Playlists, Categories, Profiles, BookSeries} from '@prisma/client';
+import {Languages, Books, Playlists, Categories, Profiles} from '@prisma/client';
 
 export class ValidationError extends Error {
     constructor(
@@ -55,15 +55,6 @@ export async function validateCategoryExists(categoryId: any): Promise<Categorie
     )
 }
 
-export async function validateBookSeriesExists(id: any): Promise<BookSeries> {
-    const seriesId = validateIntId(id)
-
-    return validateExists(
-        prisma.bookSeries,
-        seriesId,
-        'Book series'
-    )
-}
 
 export async function validateProfileExists(profileId: any): Promise<Profiles> {
     const id = validateIntId(profileId)

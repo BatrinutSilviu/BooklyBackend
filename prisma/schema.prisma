@@ -1,93 +1,67 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  schemas   = ["public", "auth"]
+  provider = "postgresql"
+  schemas  = ["public", "auth"]
 }
 
-model StorySeries {
-  id                Int                  @id @default(autoincrement())
-  name              String
-  created_at        DateTime             @default(now())
-  storySeriesStories StorySeriesStories[]
+model Books {
+  id               Int               @id @default(autoincrement())
+  photo_url        String?
+  duration         Int?
+  status           Boolean           @default(true)
+  created_at       DateTime          @default(now())
+  bookCategories   BookCategories[]
+  bookTranslations BookTranslations[]
+  playlistBooks    PlaylistBooks[]
+  favorites        Favorites[]
 
-  @@map("Story_Series")
-  @@schema("public")
-}
-
-model StorySeriesStories {
-  id              Int         @id @default(autoincrement())
-  story_id        Int
-  story_series_id Int
-  created_at      DateTime    @default(now())
-  story           Stories     @relation(fields: [story_id], references: [id])
-  series          StorySeries @relation(fields: [story_series_id], references: [id])
-
-  @@unique([story_id, story_series_id])
-  @@map("Story_Series_Stories")
-  @@schema("public")
-}
-
-model Stories {
-  id        Int      @id @default(autoincrement())
-  photo_url String?
-  duration Int?
-  status    Boolean  @default(true)
-  created_at DateTime @default(now())
-  storySeriesStories StorySeriesStories[]
-  storyCategories StoryCategories[]
-  storyTranslations StoryTranslations[]
-  playlistStories PlaylistStories[]
-  favorites Favorites[]
-
-  @@map("Stories")
+  @@map("Books")
   @@schema("public")
 }
 
 model User {
-  id                String    @id @db.Uuid
-  email             String?
-  phone             String?
-  role              String?
-  created_at        DateTime?
-  updated_at        DateTime?
-  last_sign_in_at   DateTime?
-  app_metadata      Json      @default("{}") @map("raw_app_meta_data")
-  user_metadata     Json      @default("{}") @map("raw_user_meta_data")
-  profiles          Profiles[]
+  id              String     @id @db.Uuid
+  email           String?
+  phone           String?
+  role            String?
+  created_at      DateTime?
+  updated_at      DateTime?
+  last_sign_in_at DateTime?
+  app_metadata    Json       @default("{}") @map("raw_app_meta_data")
+  user_metadata   Json       @default("{}") @map("raw_user_meta_data")
+  profiles        Profiles[]
 
   @@map("users")
   @@schema("auth")
 }
 
 model Profiles {
-  id        Int      @id @default(autoincrement())
-  user_id    String   @db.Uuid
-  name String
-  date_of_birth DateTime? @db.Date
-  gender Boolean
-  photo_url String?
-  created_at DateTime @default(now())
-  user              User               @relation(fields: [user_id], references: [id])
+  id                Int                 @id @default(autoincrement())
+  user_id           String              @db.Uuid
+  name              String
+  date_of_birth     DateTime?           @db.Date
+  gender            Boolean
+  photo_url         String?
+  created_at        DateTime            @default(now())
+  user              User                @relation(fields: [user_id], references: [id])
   profileCategories ProfileCategories[]
-  playlists Playlists[]
-  favorites Favorites[]
+  playlists         Playlists[]
+  favorites         Favorites[]
 
   @@map("Profiles")
   @@schema("public")
 }
 
 model Categories {
-  id        Int      @id @default(autoincrement())
-  photo_url String?
-  status    Boolean  @default(true)
-  created_at DateTime @default(now())
-  profileCategories ProfileCategories[]
-  storyCategories StoryCategories[]
+  id                   Int                    @id @default(autoincrement())
+  photo_url            String?
+  status               Boolean                @default(true)
+  created_at           DateTime               @default(now())
+  profileCategories    ProfileCategories[]
+  bookCategories       BookCategories[]
   categoryTranslations CategoryTranslations[]
 
   @@map("Categories")
@@ -95,11 +69,11 @@ model Categories {
 }
 
 model Languages {
-  id        Int      @id @default(autoincrement())
-  name String
-  country_code String
-  created_at DateTime @default(now())
-  storyTranslations StoryTranslations[]
+  id                   Int                    @id @default(autoincrement())
+  name                 String
+  country_code         String
+  created_at           DateTime               @default(now())
+  bookTranslations     BookTranslations[]
   categoryTranslations CategoryTranslations[]
 
   @@map("Languages")
@@ -107,105 +81,104 @@ model Languages {
 }
 
 model ProfileCategories {
-  id        Int      @id @default(autoincrement())
-  profile_id Int
+  id          Int        @id @default(autoincrement())
+  profile_id  Int
   category_id Int
-  created_at DateTime @default(now())
-  profile  Profiles   @relation(fields: [profile_id], references: [id])
-  category Categories @relation(fields: [category_id], references: [id])
+  created_at  DateTime   @default(now())
+  profile     Profiles   @relation(fields: [profile_id], references: [id])
+  category    Categories @relation(fields: [category_id], references: [id])
 
   @@map("Profile_Categories")
   @@schema("public")
 }
 
-model StoryCategories {
-  id        Int      @id @default(autoincrement())
-  story_id Int
+model BookCategories {
+  id          Int        @id @default(autoincrement())
+  book_id     Int
   category_id Int
-  created_at DateTime @default(now())
-  story  Stories   @relation(fields: [story_id], references: [id])
-  category Categories @relation(fields: [category_id], references: [id])
+  created_at  DateTime   @default(now())
+  book        Books      @relation(fields: [book_id], references: [id])
+  category    Categories @relation(fields: [category_id], references: [id])
 
-  @@map("Story_Categories")
+  @@map("Book_Categories")
   @@schema("public")
 }
 
-model StoryPages {
-  id        Int      @id @default(autoincrement())
-  page_number Int
-  story_translation_id Int
-  text_content String
-  photo_url String?
-  audio_url String?
-  created_at DateTime @default(now())
-  storyTranslation StoryTranslations @relation(fields: [story_translation_id], references: [id])
+model BookPages {
+  id                   Int              @id @default(autoincrement())
+  page_number          Int
+  book_translation_id  Int
+  text_content         String
+  photo_url            String?
+  audio_url            String?
+  created_at           DateTime         @default(now())
+  bookTranslation      BookTranslations @relation(fields: [book_translation_id], references: [id])
 
-  @@map("Story_Pages")
+  @@map("Book_Pages")
   @@schema("public")
 }
 
-model StoryTranslations {
-  id        Int      @id @default(autoincrement())
-  story_id Int
+model BookTranslations {
+  id          Int       @id @default(autoincrement())
+  book_id     Int
   language_id Int
-  title String
+  title       String
   description String?
-  created_at DateTime @default(now())
-  language Languages @relation(fields: [language_id], references: [id])
-  story Stories @relation(fields: [story_id], references: [id])
+  created_at  DateTime  @default(now())
+  language    Languages @relation(fields: [language_id], references: [id])
+  book        Books     @relation(fields: [book_id], references: [id])
+  bookPages   BookPages[]
 
-  storyPages StoryPages[]
-
-  @@map("Story_Translations")
+  @@map("Book_Translations")
   @@schema("public")
 }
 
 model CategoryTranslations {
-  id        Int      @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   category_id Int
   language_id Int
-  name String
-  created_at DateTime @default(now())
-  language Languages @relation(fields: [language_id], references: [id])
-  category Categories @relation(fields: [category_id], references: [id])
+  name        String
+  created_at  DateTime   @default(now())
+  language    Languages  @relation(fields: [language_id], references: [id])
+  category    Categories @relation(fields: [category_id], references: [id])
 
   @@map("Category_Translations")
   @@schema("public")
 }
 
 model Playlists {
-  id        Int      @id @default(autoincrement())
-  profile_id Int
-  name String
-  created_at DateTime @default(now())
-  profile Profiles @relation(fields: [profile_id], references: [id])
-  playlistStories PlaylistStories[]
+  id            Int             @id @default(autoincrement())
+  profile_id    Int
+  name          String
+  created_at    DateTime        @default(now())
+  profile       Profiles        @relation(fields: [profile_id], references: [id])
+  playlistBooks PlaylistBooks[]
 
   @@map("Playlists")
   @@schema("public")
 }
 
-model PlaylistStories {
-  id        Int      @id @default(autoincrement())
+model PlaylistBooks {
+  id          Int      @id @default(autoincrement())
   playlist_id Int
-  story_id Int
-  order Int
-  created_at DateTime @default(now())
-  playlist Playlists @relation(fields: [playlist_id], references: [id])
-  story Stories @relation(fields: [story_id], references: [id])
+  book_id     Int
+  order       Int
+  created_at  DateTime @default(now())
+  playlist    Playlists @relation(fields: [playlist_id], references: [id])
+  book        Books    @relation(fields: [book_id], references: [id])
 
-  @@unique([playlist_id, story_id])
-  @@map("Playlist_Stories")
+  @@unique([playlist_id, book_id])
+  @@map("Playlist_Books")
   @@schema("public")
 }
 
 model Favorites {
-  id        Int      @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   profile_id Int
-  story_id Int
+  book_id    Int
   created_at DateTime @default(now())
-  profile Profiles @relation(fields: [profile_id], references: [id])
-  story Stories @relation(fields: [story_id], references: [id])
+  profile    Profiles @relation(fields: [profile_id], references: [id])
+  book       Books    @relation(fields: [book_id], references: [id])
 
   @@map("Favorites")
   @@schema("public")
