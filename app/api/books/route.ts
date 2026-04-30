@@ -208,9 +208,6 @@ export async function GET(request: Request) {
  *                 example: The Great Adventure
  *               description:
  *                 type: string
- *               series_ids:
- *                 type: string
- *                 description: JSON array of series IDs to assign the book to (e.g. [1,2])
  *               category_ids:
  *                 type: string
  *                 description: JSON array of category IDs, e.g. "[1, 2]"
@@ -328,7 +325,6 @@ export async function POST(request: Request) {
 
         const title = formData.get('title') as string | null
         const description = formData.get('description') as string | null
-        const series_ids_raw = formData.get('series_ids') as string | null
         const category_ids_raw = formData.get('category_ids') as string | null
         const pages_raw = formData.get('pages') as string | null
         const book_photo = formData.get('book_photo') as File | null
@@ -342,10 +338,6 @@ export async function POST(request: Request) {
             ? validateJsonArray<number>(category_ids_raw, 'category_ids', 0)
             : []
         if (category_ids.length > 0) await validateCategoriesExist(category_ids)
-
-        const series_ids = series_ids_raw
-            ? validateJsonArray<number>(series_ids_raw, 'series_ids', 0)
-            : []
 
         // Upload book cover photo if provided
         const book_photo_url = book_photo && book_photo.size > 0
@@ -369,9 +361,6 @@ export async function POST(request: Request) {
         const book = await prisma.books.create({
             data: {
                 photo_url: book_photo_url,
-                bookSeriesBooks: series_ids.length > 0 ? {
-                    create: series_ids.map((book_series_id: number) => ({ book_series_id }))
-                } : undefined,
                 bookCategories: category_ids.length > 0 ? {
                     create: category_ids.map((category_id: number) => ({ category_id }))
                 } : undefined,

@@ -183,8 +183,7 @@ export async function DELETE(
             }
             await tx.bookTranslations.deleteMany({ where: { book_id: bookId } })
             await tx.bookCategories.deleteMany({ where: { book_id: bookId } })
-            await tx.bookSeriesBooks.deleteMany({ where: { book_id: bookId } })
-            await tx.playlistBooks.deleteMany({ where: { book_id: bookId } })
+await tx.playlistBooks.deleteMany({ where: { book_id: bookId } })
             await tx.favorites.deleteMany({ where: { book_id: bookId } })
             await tx.books.delete({ where: { id: bookId } })
         })
