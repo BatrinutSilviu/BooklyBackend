@@ -26,6 +26,119 @@
     }
   },
   "paths": {
+    "/api/auth/callback": {
+      "get": {
+        "summary": "Handle OAuth callback",
+        "description": "Exchanges the OAuth code returned by Google for a session. Returns access and refresh tokens.",
+        "tags": [
+          "Authentication"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Authorization code returned by Google"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "user": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "email": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "session": {
+                      "type": "object",
+                      "properties": {
+                        "access_token": {
+                          "type": "string"
+                        },
+                        "refresh_token": {
+                          "type": "string"
+                        },
+                        "expires_in": {
+                          "type": "integer"
+                        },
+                        "token_type": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid code"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/auth/google": {
+      "get": {
+        "summary": "Initiate Google OAuth login",
+        "description": "Returns a Google OAuth URL. Open this URL in a browser or webview. After authentication, Google will redirect to /api/auth/callback with a code parameter.",
+        "tags": [
+          "Authentication"
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "redirect_to",
+            "schema": {
+              "type": "string"
+            },
+            "description": "URL to redirect to after successful authentication (defaults to the callback endpoint)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Google OAuth URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "Open this URL in a browser to authenticate with Google"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
     "/api/auth/login": {
       "post": {
         "summary": "Login to user account",
@@ -959,10 +1072,6 @@
                   },
                   "description": {
                     "type": "string"
-                  },
-                  "series_ids": {
-                    "type": "string",
-                    "description": "JSON array of series IDs to assign the book to (e.g. [1,2])"
                   },
                   "category_ids": {
                     "type": "string",
