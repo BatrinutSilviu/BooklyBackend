@@ -1,8 +1,20 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS,PATCH',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
 export async function proxy(request: NextRequest) {
-    return NextResponse.next()
+    if (request.method === 'OPTIONS') {
+        return new NextResponse(null, { status: 204, headers: CORS_HEADERS })
+    }
+
+    const response = NextResponse.next()
+    Object.entries(CORS_HEADERS).forEach(([k, v]) => response.headers.set(k, v))
+    return response
 }
 
 export const config = {
