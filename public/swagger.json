@@ -1743,7 +1743,8 @@
         }
       },
       "post": {
-        "summary": "Creates a new category with photo",
+        "summary": "Create one or more categories with photos",
+        "description": "Accepts multipart/form-data. Send a JSON array in the `categories` field (each item needs `name` and `language_id`) and one photo file per item as `photo_0`, `photo_1`, … matching the array index. Returns an array of the created categories.",
         "tags": [
           "Categories"
         ],
@@ -1759,23 +1760,24 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "name",
-                  "language_id",
-                  "photo"
+                  "categories",
+                  "photo_0"
                 ],
                 "properties": {
-                  "name": {
+                  "categories": {
                     "type": "string",
-                    "example": "Sports"
+                    "description": "JSON array of category objects, each with `name` (string) and `language_id` (integer)",
+                    "example": "[{\"name\":\"Sports\",\"language_id\":1},{\"name\":\"Music\",\"language_id\":1}]"
                   },
-                  "language_id": {
-                    "type": "string",
-                    "example": 1
-                  },
-                  "photo": {
+                  "photo_0": {
                     "type": "string",
                     "format": "binary",
-                    "description": "Category photo image file"
+                    "description": "Photo for categories[0]"
+                  },
+                  "photo_1": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Photo for categories[1] (add more as photo_2, photo_3, … for each additional category)"
                   }
                 }
               }
@@ -1784,16 +1786,57 @@
         },
         "responses": {
           "201": {
-            "description": "Category created successfully"
+            "description": "Categories created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "integer" },
+                      "photo_url": { "type": "string" },
+                      "status": { "type": "boolean" },
+                      "created_at": { "type": "string", "format": "date-time" },
+                      "categoryTranslations": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "integer" },
+                            "name": { "type": "string" },
+                            "language": {
+                              "type": "object",
+                              "properties": {
+                                "id": { "type": "integer" },
+                                "name": { "type": "string" },
+                                "country_code": { "type": "string" }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "_count": {
+                        "type": "object",
+                        "properties": {
+                          "bookCategories": { "type": "integer" },
+                          "profileCategories": { "type": "integer" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad request - validation error"
+            "description": "Bad request - validation error (missing field, invalid JSON, missing photo)"
           },
           "401": {
             "description": "Unauthorized"
           },
           "409": {
-            "description": "Category already exists"
+            "description": "One or more categories already exist"
           },
           "500": {
             "description": "Server error"

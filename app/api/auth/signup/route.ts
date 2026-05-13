@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase-server'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 /**
  * @swagger
@@ -81,11 +81,10 @@ export async function POST(request: Request) {
     try {
         const { email, password } = await request.json()
 
-        const supabase = await createClient()
-
-        const { data: authData, error: signUpError } = await supabase.auth.signUp({
+        const { data: authData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
+            email_confirm: true,
         })
 
         if (signUpError || !authData.user) {

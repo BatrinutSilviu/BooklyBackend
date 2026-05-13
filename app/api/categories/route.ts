@@ -152,7 +152,11 @@ export async function GET(request: Request) {
  * @swagger
  * /api/categories:
  *   post:
- *     summary: Creates a new category with photo
+ *     summary: Create one or more categories with photos
+ *     description: >
+ *       Accepts multipart/form-data. Send a JSON array in the `categories` field
+ *       (each item needs `name` and `language_id`) and one photo per item as
+ *       `photo_0`, `photo_1`, … matching the array index.
  *     tags:
  *       - Categories
  *     security:
@@ -164,29 +168,28 @@ export async function GET(request: Request) {
  *           schema:
  *             type: object
  *             required:
- *               - name
- *               - language_id
- *               - photo
+ *               - categories
+ *               - photo_0
  *             properties:
- *               name:
+ *               categories:
  *                 type: string
- *                 example: Sports
- *               language_id:
- *                 type: string
- *                 example: 1
- *               photo:
+ *                 description: JSON array of category objects
+ *                 example: '[{"name":"Sports","language_id":1},{"name":"Music","language_id":1}]'
+ *               photo_0:
  *                 type: string
  *                 format: binary
- *                 description: Category photo image file
+ *               photo_1:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       201:
- *         description: Category created successfully
+ *         description: Categories created successfully
  *       400:
  *         description: Bad request - validation error
  *       401:
  *         description: Unauthorized
  *       409:
- *         description: Category already exists
+ *         description: One or more categories already exist
  *       500:
  *         description: Server error
  */
@@ -196,45 +199,74 @@ export async function POST(request: Request) {
         if (authError) return authError
 
         const formData = await request.formData()
-        const name = formData.get('name') as string | null
-        const photo = formData.get('photo') as File | null
+        const categoriesRaw = formData.get('categories') as string | null
+        validateRequired(categoriesRaw, 'categories')
 
-        validateRequired(name, 'name')
-        const languageId = validateIntId(formData.get('language_id'), 'language_id')
-        await validateLanguageExists(languageId)
-        validateRequired(photo, 'photo')
-
-        const existingCategory = await prisma.categoryTranslations.findFirst({
-            where: { name: { equals: (name as string).trim(), mode: 'insensitive' }, language_id: languageId }
-        })
-        if (existingCategory) {
-            return NextResponse.json({ error: 'Category already exists' }, { status: 409 })
+        let items: { name: string; language_id: number }[]
+        try {
+            const parsed = JSON.parse(categoriesRaw as string)
+            if (!Array.isArray(parsed) || parsed.length === 0) {
+                throw new ValidationError('categories must be a non-empty JSON array', 400)
+            }
+            items = parsed
+        } catch (e) {
+            if (e instanceof ValidationError) throw e
+            throw new ValidationError('categories must be a valid JSON array', 400)
         }
 
-        const photo_url = await uploadPhoto(photo as File, 'category', user.id)
-
-        const category = await prisma.categories.create({
-            data: {
-                photo_url,
-                categoryTranslations: {
-                    create: { name: (name as string).trim(), language_id: languageId }
-                }
-            },
-            include: {
-                categoryTranslations: {
-                    include: {
-                        language: {
-                            select: { id: true, name: true, country_code: true }
-                        }
-                    }
-                },
-                _count: {
-                    select: { bookCategories: true, profileCategories: true }
-                }
-            }
+        const photos: File[] = items.map((_, i) => {
+            const photo = formData.get(`photo_${i}`) as File | null
+            if (!photo) throw new ValidationError(`photo_${i} is required`, 400)
+            return photo
         })
 
-        return NextResponse.json(category, { status: 201 })
+        // Validate all language IDs and check for duplicates
+        await Promise.all(items.map((item, i) => {
+            validateRequired(item.name, `categories[${i}].name`)
+            validateIntId(item.language_id, `categories[${i}].language_id`)
+            return validateLanguageExists(item.language_id)
+        }))
+
+        const duplicates = await prisma.categoryTranslations.findMany({
+            where: {
+                OR: items.map(item => ({
+                    name: { equals: item.name.trim(), mode: 'insensitive' as const },
+                    language_id: item.language_id
+                }))
+            },
+            select: { name: true, language_id: true }
+        })
+        if (duplicates.length > 0) {
+            const names = duplicates.map(d => `"${d.name}" (language ${d.language_id})`).join(', ')
+            return NextResponse.json({ error: `Categories already exist: ${names}` }, { status: 409 })
+        }
+
+        const photoUrls = await Promise.all(
+            photos.map((photo, i) => uploadPhoto(photo, 'category', user.id, `category ${i}`))
+        )
+
+        const include = {
+            categoryTranslations: {
+                include: { language: { select: { id: true, name: true, country_code: true } } }
+            },
+            _count: { select: { bookCategories: true, profileCategories: true } }
+        }
+
+        const created = await Promise.all(
+            items.map((item, i) =>
+                prisma.categories.create({
+                    data: {
+                        photo_url: photoUrls[i],
+                        categoryTranslations: {
+                            create: { name: item.name.trim(), language_id: item.language_id }
+                        }
+                    },
+                    include
+                })
+            )
+        )
+
+        return NextResponse.json(created, { status: 201 })
     } catch (error) {
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
