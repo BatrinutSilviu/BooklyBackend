@@ -169,18 +169,18 @@ export async function GET(request: Request) {
  *             type: object
  *             required:
  *               - categories
- *               - photo_0
+ *               - photo
  *             properties:
  *               categories:
  *                 type: string
  *                 description: JSON array of category objects
  *                 example: '[{"name":"Sports","language_id":1},{"name":"Music","language_id":1}]'
- *               photo_0:
- *                 type: string
- *                 format: binary
- *               photo_1:
- *                 type: string
- *                 format: binary
+ *               photo:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *                 description: One photo file per category, in the same order as the categories array
  *     responses:
  *       201:
  *         description: Categories created successfully
@@ -214,11 +214,10 @@ export async function POST(request: Request) {
             throw new ValidationError('categories must be a valid JSON array', 400)
         }
 
-        const photos: File[] = items.map((_, i) => {
-            const photo = formData.get(`photo_${i}`) as File | null
-            if (!photo) throw new ValidationError(`photo_${i} is required`, 400)
-            return photo
-        })
+        const photos = formData.getAll('photo') as File[]
+        if (photos.length !== items.length) {
+            throw new ValidationError(`Expected ${items.length} photo(s), got ${photos.length}`, 400)
+        }
 
         // Validate all language IDs and check for duplicates
         await Promise.all(items.map((item, i) => {

@@ -1761,7 +1761,7 @@
                 "type": "object",
                 "required": [
                   "categories",
-                  "photo_0"
+                  "photo"
                 ],
                 "properties": {
                   "categories": {
@@ -1769,15 +1769,13 @@
                     "description": "JSON array of category objects, each with `name` (string) and `language_id` (integer)",
                     "example": "[{\"name\":\"Sports\",\"language_id\":1},{\"name\":\"Music\",\"language_id\":1}]"
                   },
-                  "photo_0": {
-                    "type": "string",
-                    "format": "binary",
-                    "description": "Photo for categories[0]"
-                  },
-                  "photo_1": {
-                    "type": "string",
-                    "format": "binary",
-                    "description": "Photo for categories[1] (add more as photo_2, photo_3, … for each additional category)"
+                  "photo": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "One photo file per category, repeated in the same order as the categories array"
                   }
                 }
               }
