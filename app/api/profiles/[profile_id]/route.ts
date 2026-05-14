@@ -423,9 +423,6 @@ export async function GET(
     { params }: { params: Promise<{ profile_id: string }> }
 ) {
     try {
-        const { user, error: authError } = await getAuthenticatedUser()
-        if (authError) return authError
-
         const { profile_id } = await params
         const profileId = parseInt(profile_id, 10)
 
@@ -455,13 +452,6 @@ export async function GET(
             return NextResponse.json(
                 { error: 'Profile not found' },
                 { status: 404 }
-            )
-        }
-
-        if (profile.user_id !== user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden - you can only view your own profiles' },
-                { status: 403 }
             )
         }
 

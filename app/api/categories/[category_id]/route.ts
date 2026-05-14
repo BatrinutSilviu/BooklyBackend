@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedAdmin, getAuthenticatedUser } from '@/lib/auth'
+import { getAuthenticatedAdmin } from '@/lib/auth'
 import { validateIntId, validateCategoryExists, ValidationError } from '@/lib/validators'
 import { uploadPhoto, deletePhoto } from '@/lib/upload'
 
@@ -77,9 +77,6 @@ export async function GET(
     { params }: { params: Promise<{ category_id: string }> }
 ) {
     try {
-        const { error: authError } = await getAuthenticatedUser()
-        if (authError) return authError
-
         const { category_id } = await params
         const categoryId = validateIntId(category_id, 'category ID')
 

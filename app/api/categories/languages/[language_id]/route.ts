@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser } from '@/lib/auth'
 
 /**
  * @swagger
@@ -53,12 +52,6 @@ export async function GET(
     { params }: { params: Promise<{ language_id: string }> }
 ) {
     try {
-        const { user, error } = await getAuthenticatedUser()
-
-        if (error) {
-            return error
-        }
-
         const { language_id } = await params
         const languageIdParsed = parseInt(language_id, 10)
 

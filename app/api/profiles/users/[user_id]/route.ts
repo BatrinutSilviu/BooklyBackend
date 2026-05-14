@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser } from '@/lib/auth'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 /**
@@ -60,9 +59,6 @@ export async function GET(
     { params }: { params: Promise<{ user_id: string }> }
 ) {
     try {
-        const { user, error: authError } = await getAuthenticatedUser()
-        if (authError) return authError
-
         const { user_id } = await params
 
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
@@ -70,13 +66,6 @@ export async function GET(
             return NextResponse.json(
                 { error: 'Invalid user ID format' },
                 { status: 400 }
-            )
-        }
-
-        if (user.id !== user_id) {
-            return NextResponse.json(
-                { error: 'Forbidden - you can only access your own profiles' },
-                { status: 403 }
             )
         }
 

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { getAuthenticatedUser } from '@/lib/auth'
 import {
     validateLanguageExists,
     validatePlaylistExists
@@ -92,9 +91,6 @@ export async function GET(
     { params }: { params: Promise<{ playlist_id: string, language_id: string }> }
 ) {
     try {
-        const { user, error: authError } = await getAuthenticatedUser()
-        if (authError) return authError
-
         const { playlist_id, language_id } = await params
 
         const [inputLanguage, inputPlaylist] = await Promise.all([
@@ -105,11 +101,6 @@ export async function GET(
         const playlist = await prisma.playlists.findUnique({
             where: { id: inputPlaylist.id },
             include: {
-                profile: {
-                    select: {
-                        user_id: true,
-                    }
-                },
                 playlistBooks: {
                     orderBy: {
                         order: 'asc'
@@ -137,13 +128,6 @@ export async function GET(
             return NextResponse.json(
                 { error: 'Playlist not found' },
                 { status: 404 }
-            )
-        }
-
-        if (playlist.profile.user_id !== user.id) {
-            return NextResponse.json(
-                { error: 'Forbidden - you can only view your own playlists' },
-                { status: 403 }
             )
         }
 
