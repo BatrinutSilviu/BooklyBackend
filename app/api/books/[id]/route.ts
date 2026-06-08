@@ -157,8 +157,9 @@ export async function PUT(
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
+        const message = error instanceof Error ? error.message : 'Unknown error'
         console.error('Update book error:', error)
-        return NextResponse.json({ error: 'Failed to update book' }, { status: 500 })
+        return NextResponse.json({ error: `Failed to update book: ${message}` }, { status: 500 })
     }
 }
 
@@ -197,7 +198,8 @@ await tx.playlistBooks.deleteMany({ where: { book_id: bookId } })
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
+        const message = error instanceof Error ? error.message : 'Unknown error'
         console.error('Delete book error:', error)
-        return NextResponse.json({ error: 'Failed to delete book' }, { status: 500 })
+        return NextResponse.json({ error: `Failed to delete book: ${message}` }, { status: 500 })
     }
 }

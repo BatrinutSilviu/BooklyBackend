@@ -398,7 +398,8 @@ export async function POST(request: Request) {
         if (error instanceof ValidationError) {
             return NextResponse.json({ error: error.message }, { status: error.statusCode })
         }
+        const message = error instanceof Error ? error.message : 'Unknown error'
         console.error('Create complete book error:', error)
-        return NextResponse.json({ error: 'Failed to create book' }, { status: 500 })
+        return NextResponse.json({ error: `Failed to create book: ${message}` }, { status: 500 })
     }
 }
