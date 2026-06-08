@@ -7,7 +7,7 @@ const CORS_HEADERS = {
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     if (request.method === 'OPTIONS') {
         return new NextResponse(null, { status: 204, headers: CORS_HEADERS })
     }
