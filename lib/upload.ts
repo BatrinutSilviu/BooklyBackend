@@ -49,7 +49,7 @@ export async function uploadPhoto(
         ContentType: file.type,
         Metadata: {
             userId,
-            originalName: file.name,
+            originalName: encodeURIComponent(file.name),
             uploadedAt: new Date().toISOString(),
         },
     }))
