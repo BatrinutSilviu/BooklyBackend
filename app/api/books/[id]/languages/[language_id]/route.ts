@@ -106,7 +106,8 @@ export async function GET(
                 book: {
                     select: {
                         photo_url: true,
-                        status: true
+                        status: true,
+                        last_updated: true
                     }
                 },
                 language: {

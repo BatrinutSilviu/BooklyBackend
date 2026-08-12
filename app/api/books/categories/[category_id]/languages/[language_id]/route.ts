@@ -82,6 +82,7 @@ export async function GET(
                         id: true,
                         photo_url: true,
                         status: true,
+                        last_updated: true,
                         bookTranslations: {
                             where: {
                                 language_id: languageIdParsed

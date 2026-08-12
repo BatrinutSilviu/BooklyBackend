@@ -76,6 +76,9 @@ import {
  *                       created_at:
  *                         type: string
  *                         format: date-time
+ *                       last_updated:
+ *                         type: string
+ *                         format: date-time
  *                       bookCategories:
  *                         type: array
  *                         items:
@@ -242,6 +245,9 @@ export async function GET(request: Request) {
  *                 status:
  *                   type: boolean
  *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                 last_updated:
  *                   type: string
  *                   format: date-time
  *                 bookCategories:

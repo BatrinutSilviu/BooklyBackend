@@ -76,7 +76,8 @@ export async function GET(
                     select: {
                         photo_url: true,
                         duration: true,
-                        status: true
+                        status: true,
+                        last_updated: true
                     }
                 }
             }
