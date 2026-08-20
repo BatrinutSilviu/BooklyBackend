@@ -136,10 +136,14 @@ export async function PUT(
 
             // Upsert book translation
             const existingTranslation = await tx.bookTranslations.findFirst({
-                where: { book_id: bookId, language_id: languageId }
+                where: { book_id: bookId, language_id: languageId },
+                include: { bookPages: true }
             })
 
             if (existingTranslation) {
+                const existingPhotosByPage = new Map(
+                    existingTranslation.bookPages.map(p => [p.page_number, p.photo_url])
+                )
                 await tx.bookTranslations.update({
                     where: { id: existingTranslation.id },
                     data: {
@@ -151,7 +155,8 @@ export async function PUT(
                                 create: pages.map(page => ({
                                     page_number: page.page_number,
                                     text_content: page.text_content,
-                                    photo_url: pagePhotoUrls[page.page_number] ?? null,
+                                    // Keep the existing photo unless a new one was uploaded for this page.
+                                    photo_url: pagePhotoUrls[page.page_number] ?? existingPhotosByPage.get(page.page_number) ?? null,
                                 }))
                             }
                         } : {})
