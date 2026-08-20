@@ -12,6 +12,51 @@ import {
     validateCategoriesExist,
 } from '@/lib/validators'
 
+export async function GET(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { error: authError } = await getAuthenticatedAdmin()
+        if (authError) return authError
+
+        const { id } = await params
+        const bookId = validateIntId(id, 'book ID')
+
+        const book = await prisma.books.findUnique({
+            where: { id: bookId },
+            include: {
+                bookCategories: {
+                    include: {
+                        category: {
+                            include: { categoryTranslations: { include: { language: true } } }
+                        }
+                    }
+                },
+                bookTranslations: {
+                    include: {
+                        language: true,
+                        bookPages: { orderBy: { page_number: 'asc' } }
+                    }
+                }
+            }
+        })
+
+        if (!book) {
+            return NextResponse.json({ error: 'Book not found' }, { status: 404 })
+        }
+
+        return NextResponse.json(book)
+    } catch (error) {
+        if (error instanceof ValidationError) {
+            return NextResponse.json({ error: error.message }, { status: error.statusCode })
+        }
+        const message = error instanceof Error ? error.message : 'Unknown error'
+        console.error('Get book error:', error)
+        return NextResponse.json({ error: `Failed to fetch book: ${message}` }, { status: 500 })
+    }
+}
+
 export async function PUT(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
