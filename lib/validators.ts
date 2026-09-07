@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import {Languages, Books, Playlists, Categories, Profiles} from '@prisma/client';
+import {Languages, Books, Playlists, Categories, Profiles, ContactMessages} from '@prisma/client';
 
 export class ValidationError extends Error {
     constructor(
@@ -74,6 +74,24 @@ export async function validatePlaylistExists(playlistId: any): Promise<Playlists
         id,
         'Playlist'
     )
+}
+
+export async function validateContactMessageExists(messageId: any): Promise<ContactMessages> {
+    const id = validateIntId(messageId)
+
+    return validateExists(
+        prisma.contactMessages,
+        id,
+        'Contact message'
+    )
+}
+
+export function validateEmailFormat(email: string, fieldName: string = 'email'): string {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+        throw new ValidationError(`Invalid ${fieldName} format`, 400)
+    }
+    return email
 }
 
 export async function validateProfileOwnership(profileId: number, userId: string) {

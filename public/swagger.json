@@ -994,6 +994,10 @@
                             "type": "string",
                             "format": "date-time"
                           },
+                          "last_updated": {
+                            "type": "string",
+                            "format": "date-time"
+                          },
                           "bookCategories": {
                             "type": "array",
                             "items": {
@@ -1117,6 +1121,10 @@
                       "type": "boolean"
                     },
                     "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "last_updated": {
                       "type": "string",
                       "format": "date-time"
                     },
@@ -1744,7 +1752,7 @@
       },
       "post": {
         "summary": "Create one or more categories with photos",
-        "description": "Accepts multipart/form-data. Send a JSON array in the `categories` field (each item needs `name` and `language_id`) and one photo file per item as `photo_0`, `photo_1`, … matching the array index. Returns an array of the created categories.",
+        "description": "Accepts multipart/form-data. Send a JSON array in the `categories` field (each item needs `name` and `language_id`) and one photo per item as `photo_0`, `photo_1`, … matching the array index.\n",
         "tags": [
           "Categories"
         ],
@@ -1766,7 +1774,7 @@
                 "properties": {
                   "categories": {
                     "type": "string",
-                    "description": "JSON array of category objects, each with `name` (string) and `language_id` (integer)",
+                    "description": "JSON array of category objects",
                     "example": "[{\"name\":\"Sports\",\"language_id\":1},{\"name\":\"Music\",\"language_id\":1}]"
                   },
                   "photo": {
@@ -1775,7 +1783,7 @@
                       "type": "string",
                       "format": "binary"
                     },
-                    "description": "One photo file per category, repeated in the same order as the categories array"
+                    "description": "One photo file per category, in the same order as the categories array"
                   }
                 }
               }
@@ -1784,43 +1792,223 @@
         },
         "responses": {
           "201": {
-            "description": "Categories created successfully",
+            "description": "Categories created successfully"
+          },
+          "400": {
+            "description": "Bad request - validation error"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "409": {
+            "description": "One or more categories already exist"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/contact/{id}": {
+      "get": {
+        "summary": "Get a single Contact Us message (admin only)",
+        "tags": [
+          "Contact"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact message details"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - admin access required"
+          },
+          "404": {
+            "description": "Contact message not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Mark a Contact Us message as read or unread (admin only)",
+        "tags": [
+          "Contact"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "is_read"
+                ],
+                "properties": {
+                  "is_read": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contact message updated"
+          },
+          "400": {
+            "description": "Bad request - invalid is_read value"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - admin access required"
+          },
+          "404": {
+            "description": "Contact message not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a Contact Us message (admin only)",
+        "tags": [
+          "Contact"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contact message deleted"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - admin access required"
+          },
+          "404": {
+            "description": "Contact message not found"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      }
+    },
+    "/api/contact": {
+      "post": {
+        "summary": "Submit a Contact Us message",
+        "description": "Public endpoint used by the app's Contact Us form. Does not require authentication.",
+        "tags": [
+          "Contact"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "email",
+                  "message"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "John Doe"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "john@example.com"
+                  },
+                  "message": {
+                    "type": "string",
+                    "example": "I'd like to report an issue with a book."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Message submitted successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": { "type": "integer" },
-                      "photo_url": { "type": "string" },
-                      "status": { "type": "boolean" },
-                      "created_at": { "type": "string", "format": "date-time" },
-                      "categoryTranslations": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "id": { "type": "integer" },
-                            "name": { "type": "string" },
-                            "language": {
-                              "type": "object",
-                              "properties": {
-                                "id": { "type": "integer" },
-                                "name": { "type": "string" },
-                                "country_code": { "type": "string" }
-                              }
-                            }
-                          }
-                        }
-                      },
-                      "_count": {
-                        "type": "object",
-                        "properties": {
-                          "bookCategories": { "type": "integer" },
-                          "profileCategories": { "type": "integer" }
-                        }
-                      }
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "is_read": {
+                      "type": "boolean"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
                     }
                   }
                 }
@@ -1828,13 +2016,117 @@
             }
           },
           "400": {
-            "description": "Bad request - validation error (missing field, invalid JSON, missing photo)"
+            "description": "Bad request - missing or invalid fields"
+          },
+          "500": {
+            "description": "Server error"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get all Contact Us messages (admin only)",
+        "description": "Returns paginated contact messages, newest first",
+        "tags": [
+          "Contact"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            },
+            "description": "Items per page"
+          },
+          {
+            "in": "query",
+            "name": "is_read",
+            "schema": {
+              "type": "boolean"
+            },
+            "description": "Filter by read status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of contact messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "message": {
+                            "type": "string"
+                          },
+                          "is_read": {
+                            "type": "boolean"
+                          },
+                          "created_at": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    },
+                    "pagination": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "page": {
+                          "type": "integer"
+                        },
+                        "limit": {
+                          "type": "integer"
+                        },
+                        "totalPages": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "unread_count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized"
           },
-          "409": {
-            "description": "One or more categories already exist"
+          "403": {
+            "description": "Forbidden - admin access required"
           },
           "500": {
             "description": "Server error"
